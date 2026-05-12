@@ -799,17 +799,83 @@
     const MAX_FILE_MB = 45;
 
 
-    // Used when no search or filter is active — include mediatype:audio since these are returned as-is
+    // Random queries used when no search term is typed
     const DEFAULT_QUERIES = [
       '(title:jazz OR subject:jazz) mediatype:audio',
       '(title:blues OR subject:blues) mediatype:audio',
+      '(title:soul OR subject:soul) mediatype:audio',
+      '(title:funk OR subject:funk) mediatype:audio',
       '(title:folk OR subject:folk) mediatype:audio',
       '(title:classical OR subject:classical) mediatype:audio',
       '(title:gospel OR subject:gospel) mediatype:audio',
+      '(title:swing OR subject:swing) mediatype:audio',
+      '(title:ragtime OR subject:ragtime) mediatype:audio',
+      '(title:bebop OR subject:bebop) mediatype:audio',
+      '(title:ambient OR subject:ambient) mediatype:audio',
+      '(title:electronic OR subject:electronic) mediatype:audio',
+      '(title:country OR subject:country) mediatype:audio',
+      '(title:latin OR subject:latin) mediatype:audio',
+      '(subject:piano OR title:piano) mediatype:audio',
+      '(subject:percussion OR subject:drums) mediatype:audio',
       'collection:field_recordings mediatype:audio',
       'collection:oldtimeradio mediatype:audio',
-      '(title:ambient OR subject:ambient) mediatype:audio',
+      'collection:georgeblood mediatype:audio',
+      'collection:netlabels mediatype:audio',
     ];
+
+    // Maps common typed terms to precise archive.org Lucene fragments.
+    // Keys are lowercase; values omit mediatype:audio (added by buildQuery).
+    const QUERY_MAP = {
+      'jazz':              '(title:jazz OR subject:jazz)',
+      'blues':             '(title:blues OR subject:blues)',
+      'soul':              '(title:soul OR subject:soul)',
+      'funk':              '(title:funk OR subject:funk)',
+      'folk':              '(title:folk OR subject:folk)',
+      'classical':         '(title:classical OR subject:classical)',
+      'gospel':            '(title:gospel OR subject:gospel)',
+      'swing':             '(title:swing OR subject:swing)',
+      'ragtime':           '(title:ragtime OR subject:ragtime)',
+      'bebop':             '(title:bebop OR subject:bebop)',
+      'ambient':           '(title:ambient OR subject:ambient)',
+      'drone':             '(title:drone OR subject:drone)',
+      'electronic':        '(subject:electronic OR subject:electronica OR title:electronic)',
+      'electronica':       '(subject:electronica OR subject:electronic)',
+      'experimental':      '(subject:experimental OR title:experimental)',
+      'hip hop':           '(subject:"hip hop" OR title:"hip hop")',
+      'hip-hop':           '(subject:"hip hop" OR title:"hip hop")',
+      'hiphop':            '(subject:"hip hop" OR title:"hip hop")',
+      'rap':               '(subject:rap OR title:rap)',
+      'country':           '(title:country OR subject:country)',
+      'bluegrass':         '(title:bluegrass OR subject:bluegrass)',
+      'latin':             '(title:latin OR subject:latin)',
+      'bossa nova':        '(subject:"bossa nova" OR title:"bossa nova")',
+      'reggae':            '(title:reggae OR subject:reggae)',
+      'ska':               '(title:ska OR subject:ska)',
+      'drums':             '(subject:drums OR subject:percussion OR title:drums)',
+      'percussion':        '(subject:percussion OR subject:drums)',
+      'piano':             '(subject:piano OR title:piano)',
+      'guitar':            '(subject:guitar OR title:guitar)',
+      'bass':              '(subject:bass OR title:bass)',
+      'saxophone':         '(subject:saxophone OR title:saxophone)',
+      'trumpet':           '(subject:trumpet OR title:trumpet)',
+      'violin':            '(subject:violin OR title:violin)',
+      'vocals':            '(subject:vocals OR subject:acapella OR title:vocals)',
+      'acapella':          '(subject:acapella OR subject:vocals OR title:acapella)',
+      'spoken word':       '(subject:"spoken word" OR subject:speech)',
+      'field recording':   'collection:field_recordings',
+      'field recordings':  'collection:field_recordings',
+      'nature':            '(subject:nature OR subject:"field recording" OR subject:birds)',
+      'radio':             '(collection:oldtimeradio OR subject:radio)',
+      'old radio':         'collection:oldtimeradio',
+      '78rpm':             'collection:georgeblood',
+      '78 rpm':            'collection:georgeblood',
+      'netlabel':          'collection:netlabels',
+      'netlabels':         'collection:netlabels',
+      'big band':          '(subject:"big band" OR title:"big band")',
+      'orchestra':         '(subject:orchestra OR title:orchestra)',
+      'chamber music':     '(subject:"chamber music" OR title:"chamber music")',
+      'opera':             '(subject:opera OR title:opera)',
+    };
 
     // Audio format names from archive.org metadata, in preference order
     const FORMAT_PRIORITY = ['64Kbps MP3', 'VBR MP3', 'MP3', 'Ogg Vorbis', 'FLAC', '24bit Flac', 'WAV'];
@@ -1396,7 +1462,18 @@
       buildQuery() {
         const typed = document.getElementById('search-input').value.trim();
         if (!typed) return DEFAULT_QUERIES[Math.floor(Math.random() * DEFAULT_QUERIES.length)];
-        return `${typed} mediatype:audio`;
+
+        const key = typed.toLowerCase();
+
+        // Exact match in keyword map → use the curated Lucene fragment
+        if (QUERY_MAP[key]) return `${QUERY_MAP[key]} mediatype:audio`;
+
+        // Multi-word phrase → quoted subject + title search for precision
+        const safe = typed.replace(/"/g, '');
+        if (safe.includes(' ')) return `(title:"${safe}" OR subject:"${safe}") mediatype:audio`;
+
+        // Single word → unquoted title + subject for broadest recall
+        return `(title:${safe} OR subject:${safe}) mediatype:audio`;
       },
 
       // Public entry-point for generating a new sample.

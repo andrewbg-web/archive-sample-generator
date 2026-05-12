@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Archive Sample Generator</title>
+  <style>
+    /* === Reset & Base === */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:            #0F172A;
+      --surface:       #1E293B;
+      --surface-2:     #263548;
+      --border:        #334155;
+      --primary:       #3B82F6;
+      --primary-hover: #2563EB;
+      --primary-dim:   rgba(59,130,246,0.15);
+      --text:          #F1F5F9;
+      --text-muted:    #94A3B8;
+      --text-dim:      #64748B;
+      --success:       #10B981;
+      --error:         #EF4444;
+      --radius:        12px;
+      --radius-sm:     8px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 2.5rem 1rem 5rem;
+    }
+
+    /* === Header === */
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .header h1 {
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 60%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* === Search Section === */
+    .search-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.875rem;
+    }
+
+    .search-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input::placeholder { color: var(--text-dim); }
+    .search-input:focus { border-color: var(--primary); }
+
+    .search-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .search-btn:hover {
+      background: var(--surface-2);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* === Sample Length Slider === */
+    .slider-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.65rem;
+    }
+
+    .slider-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .slider-values {
+      font-size: 0.9rem;
+      color: var(--primary);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Track base — drawn with ::before/::after on the container */
+    .dual-range {
+      position: relative;
+      height: 28px;           /* tall enough for thumb hit area */
+      --min-pct: 0%;
+      --max-pct: 100%;
+    }
+
+    /* Grey background track */
+    .dual-range::before {
+      content: '';
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      left: 0; right: 0;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    /* Blue filled track between the two thumbs */
+    .dual-range::after {
+      content: '';
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      left: var(--min-pct);
+      right: calc(100% - var(--max-pct));
+      height: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    .dual-range input[type="range"] {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      appearance: none; -webkit-appearance: none;
+      background: transparent;
+      pointer-events: none;
+      margin: 0; padding: 0;
+    }
+
+    .dual-range input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 3px solid var(--bg);
+      box-shadow: 0 0 0 1px var(--primary);
+      cursor: pointer;
+      pointer-events: all;
+      transition: transform 0.15s, background 0.15s;
+    }
+
+    .dual-range input[type="range"]::-webkit-slider-thumb:hover  { transform: scale(1.18); }
+    .dual-range input[type="range"]::-webkit-slider-thumb:active  { background: var(--primary-hover); transform: scale(1.25); }
+
+    .dual-range input[type="range"]::-moz-range-thumb {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 3px solid var(--bg);
+      box-shadow: 0 0 0 1px var(--primary);
+      cursor: pointer;
+      pointer-events: all;
+    }
+
+    .dual-range input[type="range"]::-webkit-slider-runnable-track { background: transparent; }
+    .dual-range input[type="range"]::-moz-range-track              { background: transparent; }
+
+    /* === Generate Button === */
+    .generate-section {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .btn-generate {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 1rem 2.75rem;
+      border-radius: var(--radius);
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.01em;
+      min-width: 210px;
+    }
+
+    .btn-generate:hover:not(:disabled) {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(59,130,246,0.45);
+    }
+
+    .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* === Spinner === */
+    .spinner {
+      display: inline-block;
+      width: 15px;
+      height: 15px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.65s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* === Status message below generate button === */
+    .status-msg {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-top: 0.6rem;
+      min-height: 1.1em;
+      transition: opacity 0.2s;
+    }
+
+    /* === Error Banner === */
+    .error-banner {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      color: #FCA5A5;
+      padding: 0.9rem 1.2rem;
+      border-radius: var(--radius-sm);
+      margin-bottom: 1.5rem;
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.875rem;
+    }
+
+    .error-banner.show { display: flex; }
+
+    .error-close {
+      margin-left: auto;
+      cursor: pointer;
+      opacity: 0.65;
+      font-size: 1.1rem;
+      background: none;
+      border: none;
+      color: inherit;
+      line-height: 1;
+    }
+
+    .error-close:hover { opacity: 1; }
+
+    /* === Placeholder === */
+    .sample-placeholder {
+      background: var(--surface);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 3rem 2rem;
+      text-align: center;
+      color: var(--text-dim);
+      margin-bottom: 2rem;
+    }
+
+    .placeholder-icon { font-size: 2.5rem; display: block; margin-bottom: 0.875rem; opacity: 0.4; }
+
+    /* === Current Sample Card === */
+    .sample-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: none;
+    }
+
+    .sample-card.show { display: block; }
+    .sample-card.loading { opacity: 0.45; pointer-events: none; }
+
+    .sample-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+      line-height: 1.3;
+    }
+
+    .sample-creator {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+    }
+
+    .sample-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .tag {
+      background: var(--primary-dim);
+      color: var(--primary);
+      font-size: 0.73rem;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+    }
+
+    .sample-info {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin-bottom: 0.25rem;
+    }
+
+    .source-link {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .source-link:hover { text-decoration: underline; }
+
+    /* === Audio Player === */
+    audio {
+      width: 100%;
+      margin: 1rem 0;
+      border-radius: var(--radius-sm);
+      accent-color: var(--primary);
+    }
+
+    /* === Action Buttons === */
+    .sample-actions {
+      display: flex;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.6rem 1.15rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.18s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); border-color: var(--primary-hover); }
+
+    .btn-secondary {
+      background: var(--surface-2);
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+
+    .btn-success {
+      background: rgba(16,185,129,0.12);
+      border-color: rgba(16,185,129,0.4);
+      color: var(--success);
+    }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* === Sections (Favorites / Recent) === */
+    .section { margin-bottom: 2rem; }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.7rem 0;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1rem;
+      user-select: none;
+    }
+
+    .section-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-count {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.72rem;
+      padding: 0.1rem 0.45rem;
+      border-radius: 999px;
+    }
+
+    .section-arrow { color: var(--text-dim); font-size: 0.75rem; transition: transform 0.2s; }
+    .section-arrow.open { transform: rotate(180deg); }
+
+    /* === Cards Grid === */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 0.75rem;
+    }
+
+    /* === Mini Cards (History/Favorites) === */
+    .mini-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.875rem 1rem;
+      position: relative;
+    }
+
+    .mini-card-title {
+      font-size: 0.83rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.2rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 1.5rem;
+    }
+
+    .mini-card-meta {
+      font-size: 0.73rem;
+      color: var(--text-dim);
+      margin-bottom: 0.7rem;
+    }
+
+    .mini-card-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+    .mini-btn {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.73rem;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text-muted);
+      transition: all 0.18s;
+    }
+
+    .mini-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .mini-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .mini-card-delete {
+      position: absolute;
+      top: 0.55rem;
+      right: 0.55rem;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 0.8rem;
+      line-height: 1;
+      padding: 0.15rem;
+      border-radius: 4px;
+      transition: color 0.18s;
+    }
+
+    .mini-card-delete:hover { color: var(--error); }
+
+    .empty-state {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      padding: 1.5rem;
+      grid-column: 1 / -1;
+    }
+
+    /* === Responsive === */
+    @media (max-width: 520px) {
+      .app { padding: 1.5rem 0.875rem 4rem; }
+      .sample-actions { flex-direction: column; }
+      .sample-actions .btn { text-align: center; }
+      .cards-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 360px) {
+      .cards-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- ─── Header ─── -->
+    <header class="header">
+      <h1>Archive Sample Generator</h1>
+      <p>Discover and download unique audio samples from Internet Archive public-domain recordings</p>
+    </header>
+
+    <!-- ─── Search ─── -->
+    <div class="search-row">
+      <input
+        id="search-input"
+        type="text"
+        class="search-input"
+        placeholder="Search by keyword, genre, instrument, mood, decade…"
+        autocomplete="off"
+      >
+      <button class="search-btn" id="search-btn">Search</button>
+    </div>
+
+    <!-- ─── Sample Length Slider ─── -->
+    <div class="slider-section">
+      <div class="slider-header">
+        <span class="slider-label">Sample Length</span>
+        <span class="slider-values"><span id="min-display">2.0</span>s – <span id="max-display">15.0</span>s</span>
+      </div>
+      <div class="dual-range" id="dual-range">
+        <input type="range" id="min-slider" min="0.5" max="20" step="0.5" value="2">
+        <input type="range" id="max-slider" min="0.5" max="20" step="0.5" value="15">
+      </div>
+    </div>
+
+    <!-- ─── Generate Button ─── -->
+    <div class="generate-section">
+      <button class="btn-generate" id="generate-btn">Generate Sample</button>
+      <p class="status-msg" id="status-msg"></p>
+    </div>
+
+    <!-- ─── Error Banner ─── -->
+    <div class="error-banner" id="error-banner">
+      <span id="error-text"></span>
+      <button class="error-close" id="error-close" aria-label="Dismiss">✕</button>
+    </div>
+
+    <!-- ─── Placeholder (shown before first generation) ─── -->
+    <div class="sample-placeholder" id="sample-placeholder">
+      <span class="placeholder-icon">🎵</span>
+      <p>Click <strong>Generate Sample</strong> to pull a random clip from the Internet Archive's public-domain audio collection</p>
+    </div>
+
+    <!-- ─── Current Sample Card ─── -->
+    <div class="sample-card" id="sample-card">
+      <div class="sample-title" id="sample-title">—</div>
+      <div class="sample-creator" id="sample-creator"></div>
+      <div class="sample-tags" id="sample-tags"></div>
+      <div class="sample-info">
+        <span id="sample-duration"></span>
+        <span id="sample-license"></span>
+        <a id="sample-source-link" href="#" target="_blank" rel="noopener" class="source-link" style="display:none">
+          View on Archive.org ↗
+        </a>
+      </div>
+      <audio id="audio-player" controls preload="auto"></audio>
+      <div class="sample-actions">
+        <button class="btn btn-primary" id="save-btn">♡ Save to Favorites</button>
+        <button class="btn btn-secondary" id="download-btn">⬇ Download WAV</button>
+        <button class="btn btn-secondary" id="again-btn">↺ Generate Again</button>
+      </div>
+    </div>
+
+    <!-- ─── Favorites Section ─── -->
+    <section class="section">
+      <div class="section-header" id="fav-header">
+        <span class="section-title">
+          ★ Favorites
+          <span class="section-count" id="fav-count">0</span>
+        </span>
+        <span class="section-arrow open" id="fav-arrow">▼</span>
+      </div>
+      <div class="cards-grid" id="fav-grid">
+        <div class="empty-state">No favorites yet — save a sample to see it here.</div>
+      </div>
+    </section>
+
+    <!-- ─── Recent History Section ─── -->
+    <section class="section">
+      <div class="section-header" id="hist-header">
+        <span class="section-title">
+          ⏱ Recent
+          <span class="section-count" id="hist-count">0</span>
+        </span>
+        <span class="section-arrow open" id="hist-arrow">▼</span>
+      </div>
+      <div class="cards-grid" id="hist-grid">
+        <div class="empty-state">No recent samples — generate one to get started.</div>
+      </div>
+    </section>
+
+  </div><!-- /.app -->
+
+  <script>
+    // ================================================================
+    // CONFIGURATION
+    // ================================================================
+
+    // CORS proxy fallbacks for fetching audio files cross-origin
+    const CORS_PROXY_1 = 'https://corsproxy.io/?url=';
+    const CORS_PROXY_2 = 'https://api.allorigins.win/raw?url=';
+
+    // Slider bounds (seconds) — initial values set in HTML, runtime values read from DOM
+    const SLIDER_ABS_MIN = 0.5;
+    const SLIDER_ABS_MAX = 20;
+
+    // Maximum source file size we'll attempt to download
+    const MAX_FILE_MB = 45;
+
+
+    // Used when no search or filter is active — include mediatype:audio since these are returned as-is
+    const DEFAULT_QUERIES = [
+      '(title:jazz OR subject:jazz) mediatype:audio',
+      '(title:blues OR subject:blues) mediatype:audio',
+      '(title:folk OR subject:folk) mediatype:audio',
+      '(title:classical OR subject:classical) mediatype:audio',
+      '(title:gospel OR subject:gospel) mediatype:audio',
+      'collection:field_recordings mediatype:audio',
+      'collection:oldtimeradio mediatype:audio',
+      '(title:ambient OR subject:ambient) mediatype:audio',
+    ];
+
+    // Audio format names from archive.org metadata, in preference order
+    const FORMAT_PRIORITY = ['64Kbps MP3', 'VBR MP3', 'MP3', 'Ogg Vorbis', 'FLAC', '24bit Flac', 'WAV'];
+    const AUDIO_EXTS = ['.mp3', '.ogg', '.flac', '.wav'];
+
+    // ================================================================
+    // ARCHIVE API MODULE
+    // Wraps the Internet Archive's public JSON APIs.
+    // Both endpoints send Access-Control-Allow-Origin: * so no proxy needed.
+    // ================================================================
+    const ArchiveAPI = {
+
+      // Search for audio items matching a query.
+      // Returns an array of item metadata docs.
+      async searchItems(query) {
+        // Build the search URL; using repeated fl[] params for multiple fields
+        const base = 'https://archive.org/advancedsearch.php';
+        const params = [
+          `q=${encodeURIComponent(query)}`,
+          'fl[]=identifier',
+          'fl[]=title',
+          'fl[]=creator',
+          'fl[]=subject',
+          'fl[]=licenseurl',
+          'rows=30',
+          'page=1',
+          'output=json',
+        ].join('&');
+        const url = `${base}?${params}`;
+
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`Search API HTTP ${resp.status}`);
+
+        // Guard: archive.org returns an HTML error page for some bad queries
+        const ct = resp.headers.get('content-type') || '';
+        if (!ct.includes('json')) throw new Error('Search API returned non-JSON');
+
+        const data = await resp.json();
+        return data.response?.docs ?? [];
+      },
+
+      // Fetch the file list for one archive item.
+      // Returns an array of file objects with name, format, size, etc.
+      async getItemFiles(identifier) {
+        const url = `https://archive.org/metadata/${identifier}/files`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`Metadata API HTTP ${resp.status}`);
+
+        const ct = resp.headers.get('content-type') || '';
+        if (!ct.includes('json')) throw new Error('Metadata API returned non-JSON');
+
+        const data = await resp.json();
+        return data.result ?? [];
+      },
+
+      // Choose the best audio file from the file list.
+      // Prefers lightweight MP3 derivatives; skips files over MAX_FILE_MB.
+      selectBestFile(files) {
+        const candidates = files.filter(f => {
+          if (!f.name) return false;
+          const ext = f.name.toLowerCase();
+          const isAudio = AUDIO_EXTS.some(e => ext.endsWith(e));
+          if (!isAudio) return false;
+          const sizeMB = parseInt(f.size || '0', 10) / (1024 * 1024);
+          return sizeMB === 0 || sizeMB <= MAX_FILE_MB;
+        });
+
+        if (candidates.length === 0) return null;
+
+        // Score: lower index in FORMAT_PRIORITY = better; ties broken by size
+        const scored = candidates.map(f => ({
+          file: f,
+          score: FORMAT_PRIORITY.indexOf(f.format ?? '') === -1
+            ? FORMAT_PRIORITY.length
+            : FORMAT_PRIORITY.indexOf(f.format),
+          sizeMB: parseInt(f.size || '0', 10) / (1024 * 1024),
+        }));
+
+        scored.sort((a, b) => a.score !== b.score ? a.score - b.score : a.sizeMB - b.sizeMB);
+        return scored[0].file;
+      },
+
+      buildDownloadURL(identifier, filename) {
+        return `https://archive.org/download/${identifier}/${encodeURIComponent(filename)}`;
+      },
+    };
+
+    // ================================================================
+    // AUDIO PROCESSOR MODULE
+    // Handles fetching audio, decoding it, cutting a clip, encoding WAV.
+    // ================================================================
+    const AudioProcessor = {
+      _ctx: null,
+
+      // Lazily create (and resume) the shared AudioContext.
+      // Must be called after a user gesture to satisfy autoplay policy.
+      getCtx() {
+        if (!this._ctx || this._ctx.state === 'closed') {
+          this._ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this._ctx.state === 'suspended') this._ctx.resume();
+        return this._ctx;
+      },
+
+      // Internal: fetch any URL as ArrayBuffer with a timeout, trying direct then CORS proxies.
+      async fetchArrayBuffer(url, extraHeaders = {}) {
+        const TIMEOUT_MS = 35_000;
+
+        const attempt = async (fetchUrl) => {
+          const ctrl = new AbortController();
+          const tid  = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+          try {
+            const resp = await fetch(fetchUrl, { signal: ctrl.signal, headers: extraHeaders });
+            clearTimeout(tid);
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            return await resp.arrayBuffer();
+          } catch (e) { clearTimeout(tid); throw e; }
+        };
+
+        for (const u of [url, CORS_PROXY_1 + encodeURIComponent(url), CORS_PROXY_2 + encodeURIComponent(url)]) {
+          try { return await attempt(u); }
+          catch (e) { console.warn('[Audio] Fetch failed:', u.slice(0, 60), e.message); }
+        }
+        throw new Error('CORS_FAIL');
+      },
+
+      // Fetch only the byte range covering wantStartSec–wantEndSec of the file.
+      // Returns { buffer, isPartial, bufferStartSec } where bufferStartSec is the
+      // approximate time position of the first byte in buffer within the original file.
+      // Falls back to a full download if the server ignores the Range header.
+      async fetchRange(url, fileSize, fileDuration, wantStartSec, wantEndSec) {
+        // 192 KB padding absorbs ID3 tags and ensures we land on a valid MP3 frame
+        const PAD_BYTES = 196_608;
+        const bps       = fileSize / fileDuration;
+        const lo        = Math.max(0, Math.floor(wantStartSec * bps) - PAD_BYTES);
+        const hi        = Math.min(fileSize - 1, Math.ceil(wantEndSec * bps) + PAD_BYTES);
+        const bufStartSec = lo / bps;
+        const rangeHeader = { Range: `bytes=${lo}-${hi}` };
+
+        const TIMEOUT_MS = 20_000;
+        const attempt = async (fetchUrl) => {
+          const ctrl = new AbortController();
+          const tid  = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+          try {
+            const resp = await fetch(fetchUrl, { signal: ctrl.signal, headers: rangeHeader });
+            clearTimeout(tid);
+            if (resp.status === 206) return { buf: await resp.arrayBuffer(), partial: true };
+            if (resp.ok)             return { buf: await resp.arrayBuffer(), partial: false };
+            throw new Error(`HTTP ${resp.status}`);
+          } catch (e) { clearTimeout(tid); throw e; }
+        };
+
+        for (const u of [url, CORS_PROXY_1 + encodeURIComponent(url), CORS_PROXY_2 + encodeURIComponent(url)]) {
+          try {
+            const { buf, partial } = await attempt(u);
+            console.log(`[Range] ${partial ? '206 partial' : '200 full'} from ${u.slice(0,55)}`);
+            return { buffer: buf, isPartial: partial, bufferStartSec: partial ? bufStartSec : 0 };
+          } catch (e) { console.warn('[Range] Failed:', u.slice(0, 55), e.message); }
+        }
+        throw new Error('CORS_FAIL');
+      },
+
+      // Decode an ArrayBuffer into an AudioBuffer via the Web Audio API.
+      async decode(arrayBuffer) {
+        const ctx = this.getCtx();
+        try {
+          // slice(0) prevents "detached ArrayBuffer" errors on retry
+          return await ctx.decodeAudioData(arrayBuffer.slice(0));
+        } catch {
+          throw new Error('DECODE_FAIL');
+        }
+      },
+
+      // Cut startSec..startSec+durationSec out of audioBuffer using an OfflineAudioContext.
+      // Returns a new AudioBuffer containing only the clip.
+      async extractSample(audioBuffer, startSec, durationSec) {
+        const sr = audioBuffer.sampleRate;
+        const ch = Math.min(audioBuffer.numberOfChannels, 2); // cap at stereo
+
+        // Clamp start + duration to actual file bounds
+        const safeStart = Math.min(startSec, Math.max(0, audioBuffer.duration - 1));
+        const safeDur   = Math.min(durationSec, audioBuffer.duration - safeStart);
+        const frames    = Math.floor(safeDur * sr);
+        if (frames <= 0) throw new Error('Zero-length sample');
+
+        const offCtx = new OfflineAudioContext(ch, frames, sr);
+        const src = offCtx.createBufferSource();
+        src.buffer = audioBuffer;
+        src.connect(offCtx.destination);
+        src.start(0, safeStart, safeDur);
+        return offCtx.startRendering();
+      },
+
+      // Encode an AudioBuffer as a 16-bit PCM WAV Blob.
+      // WAV spec: RIFF header (44 bytes) + interleaved Int16 samples.
+      encodeWAV(audioBuffer) {
+        const nCh     = audioBuffer.numberOfChannels;
+        const sr      = audioBuffer.sampleRate;
+        const nSamp   = audioBuffer.length;
+        const bps     = 16;
+        const block   = nCh * (bps / 8);
+        const dataLen = nSamp * block;
+
+        const buf  = new ArrayBuffer(44 + dataLen);
+        const view = new DataView(buf);
+
+        const str = (off, s) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+
+        // RIFF descriptor
+        str(0, 'RIFF');
+        view.setUint32(4, 36 + dataLen, true);
+        str(8, 'WAVE');
+
+        // fmt sub-chunk
+        str(12, 'fmt ');
+        view.setUint32(16, 16, true);        // sub-chunk size
+        view.setUint16(20, 1,  true);        // PCM format = 1
+        view.setUint16(22, nCh, true);
+        view.setUint32(24, sr, true);
+        view.setUint32(28, sr * block, true); // byte rate
+        view.setUint16(32, block, true);      // block align
+        view.setUint16(34, bps, true);
+
+        // data sub-chunk
+        str(36, 'data');
+        view.setUint32(40, dataLen, true);
+
+        // Interleave channels and convert Float32 → Int16
+        const channels = Array.from({ length: nCh }, (_, c) => audioBuffer.getChannelData(c));
+        let off = 44;
+        for (let i = 0; i < nSamp; i++) {
+          for (let c = 0; c < nCh; c++) {
+            const s = Math.max(-1, Math.min(1, channels[c][i]));
+            view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+            off += 2;
+          }
+        }
+
+        return new Blob([buf], { type: 'audio/wav' });
+      },
+
+      // Create a temporary object URL for an audio Blob (used for the <audio> element).
+      createObjectURL: blob => URL.createObjectURL(blob),
+
+      // Programmatically trigger a file download in the browser.
+      triggerDownload(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a   = Object.assign(document.createElement('a'), { href: url, download: filename });
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 8000);
+      },
+
+      // Pick a random start offset (5%–72% of duration) to avoid silence at ends.
+      randomStart(duration, clipDur) {
+        const lo = duration * 0.05;
+        const hi = Math.max(lo, duration * 0.72 - clipDur);
+        return lo + Math.random() * (hi - lo);
+      },
+
+      randomDuration() {
+        const min = parseFloat(document.getElementById('min-slider').value);
+        const max = parseFloat(document.getElementById('max-slider').value);
+        return min + Math.random() * (max - min);
+      },
+    };
+
+    // ================================================================
+    // STORAGE MANAGER
+    // Persists sample metadata (not audio data) to localStorage.
+    // To replay, the app re-fetches and re-cuts from the same parameters.
+    // ================================================================
+    const Store = {
+      HK: 'asg_history',
+      FK: 'asg_favorites',
+      MAX_HIST: 20,
+
+      _get(k) { try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch { return []; } },
+      _set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },
+
+      history()   { return this._get(this.HK); },
+      favorites() { return this._get(this.FK); },
+
+      addHistory(entry) {
+        let h = this.history();
+        h.unshift(entry);
+        if (h.length > this.MAX_HIST) h = h.slice(0, this.MAX_HIST);
+        this._set(this.HK, h);
+      },
+
+      addFavorite(entry) {
+        const favs = this.favorites();
+        // Prevent near-duplicate saves (same item + start within 1 second)
+        if (favs.some(f => f.sourceIdentifier === entry.sourceIdentifier
+            && Math.abs((f.sampleStart || 0) - (entry.sampleStart || 0)) < 1)) return false;
+        favs.unshift(entry);
+        this._set(this.FK, favs);
+        return true;
+      },
+
+      isFavorited(entry) {
+        return this.favorites().some(f =>
+          f.sourceIdentifier === entry.sourceIdentifier &&
+          Math.abs((f.sampleStart || 0) - (entry.sampleStart || 0)) < 1
+        );
+      },
+
+      deleteFrom(key, id) {
+        this._set(key, this._get(key).filter(e => e.id !== id));
+      },
+    };
+
+    // ================================================================
+    // APP STATE
+    // ================================================================
+    const State = {
+      isGenerating:  false,
+      currentSample: null, // { wavBlob, metadata }
+    };
+
+    // ================================================================
+    // UI HELPERS
+    // ================================================================
+    const UI = {
+      showError(msg) {
+        document.getElementById('error-text').textContent = msg;
+        document.getElementById('error-banner').classList.add('show');
+      },
+      hideError() { document.getElementById('error-banner').classList.remove('show'); },
+
+      setLoading(on) {
+        State.isGenerating = on;
+        const genBtn   = document.getElementById('generate-btn');
+        const againBtn = document.getElementById('again-btn');
+        genBtn.innerHTML   = on ? '<span class="spinner"></span>Generating…' : 'Generate Sample';
+        genBtn.disabled    = on;
+        if (againBtn) againBtn.disabled = on;
+        document.getElementById('sample-card').classList.toggle('loading', on);
+        if (!on) this.setStatus('');
+      },
+
+      setStatus(msg) {
+        const el = document.getElementById('status-msg');
+        if (el) el.textContent = msg;
+      },
+
+      // Render the current generated sample in the main card.
+      displaySample(meta, previewURL) {
+        document.getElementById('sample-placeholder').style.display = 'none';
+        const card = document.getElementById('sample-card');
+        card.classList.add('show');
+
+        document.getElementById('sample-title').textContent =
+          Array.isArray(meta.title) ? meta.title[0] : (meta.title || 'Untitled');
+
+        const creator = Array.isArray(meta.creator) ? meta.creator[0] : meta.creator;
+        document.getElementById('sample-creator').textContent =
+          creator ? `by ${creator}` : '';
+
+        // Duration
+        document.getElementById('sample-duration').textContent =
+          `⏱ ${meta.sampleDuration.toFixed(1)}s sample`;
+
+        // License — show a human-readable label linking to the license URL
+        const licEl = document.getElementById('sample-license');
+        if (meta.licenseurl) {
+          const label = this.licenseLabel(meta.licenseurl);
+          licEl.innerHTML = `📜 <a href="${meta.licenseurl}" target="_blank" rel="noopener" class="source-link">${label}</a>`;
+        } else {
+          licEl.textContent = '📜 Public Domain / No known restrictions';
+        }
+
+        // Subject tags (up to 6)
+        const tagsEl = document.getElementById('sample-tags');
+        tagsEl.innerHTML = '';
+        const subjects = Array.isArray(meta.subject) ? meta.subject
+          : (meta.subject ? [meta.subject] : []);
+        subjects.slice(0, 6).forEach(s => {
+          const span = document.createElement('span');
+          span.className = 'tag';
+          span.textContent = s;
+          tagsEl.appendChild(span);
+        });
+
+        // Archive.org source link
+        const srcLink = document.getElementById('sample-source-link');
+        if (meta.sourceIdentifier) {
+          srcLink.href = `https://archive.org/details/${meta.sourceIdentifier}`;
+          srcLink.style.display = 'inline';
+        }
+
+        // Load audio into player and auto-play
+        const player = document.getElementById('audio-player');
+        player.src = previewURL;
+        player.load();
+        // play() returns a Promise; catch silently if browser blocks autoplay
+        player.play().catch(() => {});
+
+        this.updateSaveButton();
+      },
+
+      updateSaveButton() {
+        const btn = document.getElementById('save-btn');
+        if (!State.currentSample) return;
+        const faved = Store.isFavorited(State.currentSample.metadata);
+        btn.textContent = faved ? '★ Saved to Favorites' : '♡ Save to Favorites';
+        btn.className   = faved ? 'btn btn-success' : 'btn btn-primary';
+      },
+
+      licenseLabel(url) {
+        if (!url) return 'No known restrictions';
+        if (url.includes('publicdomain') || url.includes('/mark')) return 'Public Domain';
+        if (url.includes('cc0') || url.includes('zero')) return 'CC0 (Public Domain)';
+        if (url.includes('by-nc-sa')) return 'CC BY-NC-SA';
+        if (url.includes('by-nc-nd')) return 'CC BY-NC-ND';
+        if (url.includes('by-nc'))    return 'CC BY-NC';
+        if (url.includes('by-sa'))    return 'CC BY-SA';
+        if (url.includes('by-nd'))    return 'CC BY-ND';
+        if (url.includes('/by'))      return 'CC BY';
+        return 'Open License';
+      },
+
+      formatDate(iso) {
+        try {
+          return new Date(iso).toLocaleString(undefined, {
+            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+          });
+        } catch { return iso || ''; }
+      },
+
+      // Render a full section grid (favorites or history).
+      renderGrid(type) {
+        const isF   = type === 'favorites';
+        const items = isF ? Store.favorites() : Store.history();
+        const grid  = document.getElementById(isF ? 'fav-grid'   : 'hist-grid');
+        const count = document.getElementById(isF ? 'fav-count'  : 'hist-count');
+        const stKey = isF ? Store.FK : Store.HK;
+
+        count.textContent = items.length;
+
+        if (items.length === 0) {
+          grid.innerHTML = `<div class="empty-state">${
+            isF ? 'No favorites yet — save a sample to see it here.'
+                : 'No recent samples — generate one to get started.'
+          }</div>`;
+          return;
+        }
+
+        grid.innerHTML = items.map(e => `
+          <div class="mini-card">
+            <button class="mini-card-delete" data-id="${e.id}" data-key="${stKey}" title="Delete">✕</button>
+            <div class="mini-card-title" title="${e.title || ''}">${e.title || 'Untitled'}</div>
+            <div class="mini-card-meta">
+              ${e.creator ? e.creator + ' · ' : ''}${(e.sampleDuration||0).toFixed(1)}s · ${this.formatDate(e.savedAt)}
+            </div>
+            <div class="mini-card-actions">
+              <button class="mini-btn" data-action="play" data-id="${e.id}" data-key="${stKey}">▶ Play</button>
+              <button class="mini-btn" data-action="download" data-id="${e.id}" data-key="${stKey}">⬇ WAV</button>
+            </div>
+          </div>
+        `).join('');
+
+        // Delete buttons
+        grid.querySelectorAll('.mini-card-delete').forEach(btn => {
+          btn.addEventListener('click', () => {
+            Store.deleteFrom(btn.dataset.key, btn.dataset.id);
+            this.renderGrid('favorites');
+            this.renderGrid('history');
+          });
+        });
+
+        // Play / Download buttons
+        grid.querySelectorAll('.mini-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const storageKey = btn.dataset.key;
+            const id         = btn.dataset.id;
+            const action     = btn.dataset.action;
+            const allItems   = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            const entry      = allItems.find(e => e.id === id);
+            if (!entry) return;
+
+            btn.textContent = '…';
+            btn.disabled = true;
+            try {
+              await App.regenerateSample(entry, action === 'download');
+            } catch (e) {
+              UI.showError(`Could not load sample: ${e.message}`);
+            } finally {
+              btn.textContent = action === 'download' ? '⬇ WAV' : '▶ Play';
+              btn.disabled = false;
+            }
+          });
+        });
+      },
+    };
+
+    // ================================================================
+    // APP CONTROLLER
+    // ================================================================
+    const App = {
+      init() {
+        this.wireEvents();
+        this.wireCollapsibles();
+        UI.renderGrid('favorites');
+        UI.renderGrid('history');
+      },
+
+      wireEvents() {
+        document.getElementById('generate-btn').addEventListener('click', () => this.generate());
+        document.getElementById('again-btn').addEventListener('click',    () => this.generate());
+        document.getElementById('search-btn').addEventListener('click',   () => this.generate());
+
+        document.getElementById('search-input').addEventListener('keydown', e => {
+          if (e.key === 'Enter') this.generate();
+        });
+
+        document.getElementById('error-close').addEventListener('click', () => UI.hideError());
+
+        // Dual-range slider for sample length
+        const minSlider  = document.getElementById('min-slider');
+        const maxSlider  = document.getElementById('max-slider');
+        const minDisplay = document.getElementById('min-display');
+        const maxDisplay = document.getElementById('max-display');
+        const dualRange  = document.getElementById('dual-range');
+        const SPAN       = SLIDER_ABS_MAX - SLIDER_ABS_MIN;
+
+        const syncSliders = () => {
+          let lo = parseFloat(minSlider.value);
+          let hi = parseFloat(maxSlider.value);
+          // Keep a minimum gap of 0.5 s; whichever thumb moved takes priority
+          if (lo >= hi) {
+            if (document.activeElement === minSlider) { lo = hi - 0.5; minSlider.value = lo; }
+            else                                      { hi = lo + 0.5; maxSlider.value = hi; }
+          }
+          minDisplay.textContent = lo.toFixed(1);
+          maxDisplay.textContent = hi.toFixed(1);
+          const pct = v => ((v - SLIDER_ABS_MIN) / SPAN * 100).toFixed(2) + '%';
+          dualRange.style.setProperty('--min-pct', pct(lo));
+          dualRange.style.setProperty('--max-pct', pct(hi));
+        };
+
+        // Bring the active thumb to the front so it stays grabbable when they overlap
+        minSlider.addEventListener('pointerdown', () => { minSlider.style.zIndex = 2; maxSlider.style.zIndex = 1; });
+        maxSlider.addEventListener('pointerdown', () => { maxSlider.style.zIndex = 2; minSlider.style.zIndex = 1; });
+        minSlider.addEventListener('input', syncSliders);
+        maxSlider.addEventListener('input', syncSliders);
+        syncSliders(); // paint initial track fill
+
+        document.getElementById('save-btn').addEventListener('click', () => {
+          if (!State.currentSample) return;
+          const added = Store.addFavorite(State.currentSample.metadata);
+          UI.updateSaveButton();
+          if (added) UI.renderGrid('favorites');
+        });
+
+        document.getElementById('download-btn').addEventListener('click', () => {
+          if (!State.currentSample?.wavBlob) return;
+          AudioProcessor.triggerDownload(
+            State.currentSample.wavBlob,
+            `archive-sample-${Date.now()}.wav`
+          );
+        });
+      },
+
+      wireCollapsibles() {
+        [['fav-header',  'fav-grid',  'fav-arrow'],
+         ['hist-header', 'hist-grid', 'hist-arrow']].forEach(([hId, gId, aId]) => {
+          let open = true;
+          document.getElementById(hId).addEventListener('click', () => {
+            open = !open;
+            document.getElementById(gId).style.display = open ? '' : 'none';
+            document.getElementById(aId).classList.toggle('open', open);
+          });
+        });
+      },
+
+      // Build the archive.org Lucene query from the search bar value.
+      buildQuery() {
+        const typed = document.getElementById('search-input').value.trim();
+        if (!typed) return DEFAULT_QUERIES[Math.floor(Math.random() * DEFAULT_QUERIES.length)];
+        return `${typed} mediatype:audio`;
+      },
+
+      // Public entry-point for generating a new sample.
+      async generate() {
+        if (State.isGenerating) return;
+        document.getElementById('audio-player').pause();
+        UI.hideError();
+        UI.setLoading(true);
+        try {
+          await this._generate(0);
+        } catch (e) {
+          console.error('[Generate]', e);
+          UI.showError(this.friendlyError(e.message));
+        } finally {
+          UI.setLoading(false);
+        }
+      },
+
+      // Inner generation logic; retries up to 4 times on recoverable failures.
+      async _generate(attempt) {
+        if (attempt > 4) throw new Error('MAX_RETRIES');
+
+        const query = this.buildQuery();
+        console.log(`[Generate] attempt=${attempt} query="${query}"`);
+
+        // 1. Search — results are already ranked by relevance; pick from top 20
+        UI.setStatus('Searching Archive.org…');
+        const items = await ArchiveAPI.searchItems(query);
+        if (!items.length) throw new Error('NO_RESULTS');
+
+        const pool = items.slice(0, Math.min(20, items.length));
+        const item = pool[Math.floor(Math.random() * pool.length)];
+        const itemTitle = Array.isArray(item.title) ? item.title[0] : (item.title || item.identifier);
+        console.log('[Generate] Item:', item.identifier, '—', itemTitle);
+        UI.setStatus(`Found "${itemTitle}" — fetching files…`);
+
+        // 2. Get file list (retry if metadata call fails)
+        let files;
+        try {
+          files = await ArchiveAPI.getItemFiles(item.identifier);
+        } catch (e) {
+          console.warn('[Generate] Metadata fail, retrying:', e.message);
+          return this._generate(attempt + 1);
+        }
+
+        // 3. Pick best audio file
+        const chosen = ArchiveAPI.selectBestFile(files);
+        if (!chosen) {
+          console.warn('[Generate] No audio file in', item.identifier);
+          return this._generate(attempt + 1);
+        }
+        const knownDur  = parseFloat(chosen.length || '0') || 0;
+        const knownSize = parseInt(chosen.size   || '0', 10) || 0;
+        const sizeMB    = (knownSize / 1024 / 1024).toFixed(1);
+        console.log(`[Generate] File: ${chosen.name} (${chosen.format}, ${sizeMB} MB, dur=${knownDur.toFixed(1)}s)`);
+
+        // 4. Decide clip parameters NOW when file duration is known,
+        //    so we can use a targeted Range request instead of downloading the whole file.
+        let clipDur, startSec;
+        const canRange = knownDur > SLIDER_ABS_MIN + 5 && knownSize > 0;
+        if (canRange) {
+          clipDur  = AudioProcessor.randomDuration();
+          startSec = AudioProcessor.randomStart(knownDur, clipDur);
+        }
+
+        // 5. Download audio — use Range request when possible to fetch only the needed slice
+        const dlURL = ArchiveAPI.buildDownloadURL(item.identifier, chosen.name);
+        let arrayBuffer, bufferStartSec = 0;
+        try {
+          if (canRange) {
+            UI.setStatus(`Downloading clip (${clipDur.toFixed(0)}s from ${sizeMB} MB file)…`);
+            const result = await AudioProcessor.fetchRange(dlURL, knownSize, knownDur, startSec, startSec + clipDur);
+            arrayBuffer     = result.buffer;
+            bufferStartSec  = result.bufferStartSec;
+          } else {
+            UI.setStatus('Downloading audio…');
+            arrayBuffer = await AudioProcessor.fetchArrayBuffer(dlURL);
+          }
+        } catch (e) {
+          if (e.message === 'CORS_FAIL') throw e;
+          console.warn('[Generate] Fetch fail, retrying:', e.message);
+          return this._generate(attempt + 1);
+        }
+
+        // 6. Decode
+        UI.setStatus('Decoding audio…');
+        let decoded;
+        try {
+          decoded = await AudioProcessor.decode(arrayBuffer);
+        } catch {
+          console.warn('[Generate] Decode fail, retrying');
+          return this._generate(attempt + 1);
+        }
+
+        // 7. Cut clip — if we did a Range fetch the decoded buffer starts at bufferStartSec,
+        //    so offset our extraction by that amount.
+        if (!canRange) {
+          clipDur  = AudioProcessor.randomDuration();
+          startSec = AudioProcessor.randomStart(decoded.duration, clipDur);
+        }
+        const extractAt = Math.max(0, startSec - bufferStartSec);
+        console.log(`[Generate] Buffer ${decoded.duration.toFixed(1)}s (starts@${bufferStartSec.toFixed(1)}s) → extract @${extractAt.toFixed(1)}s for ${clipDur.toFixed(1)}s`);
+
+        UI.setStatus('Extracting sample…');
+        const clip = await AudioProcessor.extractSample(decoded, extractAt, clipDur);
+
+        // 8. Encode WAV and create preview URL
+        const wavBlob    = AudioProcessor.encodeWAV(clip);
+        const previewURL = AudioProcessor.createObjectURL(wavBlob);
+
+        // 9. Build metadata record (store file size/duration for fast re-fetch later)
+        const meta = {
+          id:               `${item.identifier}-${Date.now()}`,
+          title:            Array.isArray(item.title)   ? item.title[0]   : (item.title   || 'Untitled'),
+          creator:          Array.isArray(item.creator) ? item.creator[0] : (item.creator || ''),
+          subject:          item.subject,
+          licenseurl:       item.licenseurl || '',
+          sourceIdentifier: item.identifier,
+          sourceFile:       chosen.name,
+          sourceFileDuration: knownDur || decoded.duration,
+          sourceFileSize:   knownSize,
+          sampleStart:      startSec,
+          sampleDuration:   clip.duration,
+          savedAt:          new Date().toISOString(),
+        };
+
+        // 10. Store state, auto-save to history, refresh UI
+        State.currentSample = { wavBlob, metadata: meta };
+        Store.addHistory(meta);
+        UI.displaySample(meta, previewURL);
+        UI.renderGrid('history');
+        UI.renderGrid('favorites');
+      },
+
+      // Re-fetch and re-cut a previously saved sample for playback or download.
+      // Uses Range requests when file size/duration are stored in the metadata entry.
+      async regenerateSample(entry, download = false) {
+        const dlURL = ArchiveAPI.buildDownloadURL(entry.sourceIdentifier, entry.sourceFile);
+        const canRange = entry.sourceFileDuration && entry.sourceFileSize && entry.sampleStart != null;
+
+        let arrayBuffer, bufferStartSec = 0;
+        if (canRange) {
+          const result = await AudioProcessor.fetchRange(
+            dlURL, entry.sourceFileSize, entry.sourceFileDuration,
+            entry.sampleStart, entry.sampleStart + entry.sampleDuration
+          );
+          arrayBuffer    = result.buffer;
+          bufferStartSec = result.bufferStartSec;
+        } else {
+          arrayBuffer = await AudioProcessor.fetchArrayBuffer(dlURL);
+        }
+
+        const decoded  = await AudioProcessor.decode(arrayBuffer);
+        const extractAt = Math.max(0, entry.sampleStart - bufferStartSec);
+        const clip     = await AudioProcessor.extractSample(decoded, extractAt, entry.sampleDuration);
+        const wavBlob  = AudioProcessor.encodeWAV(clip);
+
+        if (download) {
+          AudioProcessor.triggerDownload(wavBlob, `archive-sample-${entry.id}.wav`);
+        } else {
+          State.currentSample = { wavBlob, metadata: entry };
+          UI.displaySample(entry, AudioProcessor.createObjectURL(wavBlob));
+          document.getElementById('sample-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      },
+
+      friendlyError(code) {
+        const map = {
+          NO_RESULTS:  'No audio found for that search. Try a different keyword or filter.',
+          CORS_FAIL:   'Could not download audio — the file is blocked by browser security. Try a different filter or search term.',
+          DECODE_FAIL: 'Could not decode the audio file. Please try generating again.',
+          MAX_RETRIES: 'Could not find a compatible audio file after several attempts. Try a different search or filter.',
+        };
+        return map[code] ?? `Something went wrong: ${code}. Please try again.`;
+      },
+    };
+
+    // ================================================================
+    // BOOTSTRAP
+    // ================================================================
+    document.addEventListener('DOMContentLoaded', () => App.init());
+  </script>
+</body>
+</html>

@@ -512,8 +512,89 @@
       grid-column: 1 / -1;
     }
 
+    /* === How To Use === */
+    .howto-body {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem 1.5rem;
+    }
+
+    .howto-body h3 {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin: 1.1rem 0 0.45rem;
+    }
+
+    .howto-body h3:first-child { margin-top: 0; }
+
+    .howto-body ol, .howto-body ul {
+      padding-left: 1.3rem;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      line-height: 1.85;
+    }
+
+    .howto-body li + li { margin-top: 0.15rem; }
+    .howto-body strong { color: var(--text); }
+    .howto-body em     { color: var(--primary); font-style: normal; }
+
+    /* === Footer === */
+    .site-footer {
+      border-top: 1px solid var(--border);
+      margin-top: 3rem;
+      padding: 2rem 0 2.5rem;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.75rem 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-col h4 {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 0.55rem;
+    }
+
+    .footer-col p {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    .footer-col p + p { margin-top: 0.5rem; }
+
+    .footer-col a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .footer-col a:hover { text-decoration: underline; }
+
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 1.25rem;
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+
+    /* Error hint text inside the banner */
+    .error-hint { opacity: 0.75; }
+
     /* === Responsive === */
     @media (max-width: 520px) {
+      .footer-grid { grid-template-columns: 1fr; }
       .app { padding: 1.5rem 0.875rem 4rem; }
       .sample-actions { flex-direction: column; }
       .sample-actions .btn { text-align: center; }
@@ -566,7 +647,7 @@
 
     <!-- ─── Error Banner ─── -->
     <div class="error-banner" id="error-banner">
-      <span id="error-text"></span>
+      <span id="error-text"></span><span class="error-hint"> — hit Generate Again to try a different source.</span>
       <button class="error-close" id="error-close" aria-label="Dismiss">✕</button>
     </div>
 
@@ -624,7 +705,69 @@
       </div>
     </section>
 
+    <!-- ─── How To Use Section ─── -->
+    <section class="section" id="howto-section">
+      <div class="section-header" id="howto-header">
+        <span class="section-title">? How To Use</span>
+        <span class="section-arrow" id="howto-arrow">▼</span>
+      </div>
+      <div class="howto-body" id="howto-grid" style="display:none">
+        <h3>Getting Started</h3>
+        <ol>
+          <li><strong>Hit Generate Sample</strong> — the app picks a random public-domain recording from the Internet Archive, cuts a clip at a random point, and plays it instantly.</li>
+          <li><strong>Use the search bar</strong> to narrow results by keyword, genre, instrument, mood, or decade (e.g. "1940s jazz trumpet" or "ambient rain").</li>
+          <li><strong>Adjust the Sample Length slider</strong> to set the minimum and maximum clip duration (0.5 s – 20 s).</li>
+          <li><strong>Download WAV</strong> saves a lossless 16-bit PCM file you can drop straight into any DAW or sampler.</li>
+          <li><strong>Save to Favorites</strong> bookmarks the clip's metadata so you can re-listen or re-download it later — even after a page reload.</li>
+          <li><strong>Recent</strong> automatically logs the last 20 clips you generated for quick reference.</li>
+        </ol>
+        <h3>Tips</h3>
+        <ul>
+          <li>If generation fails, <em>hit Generate Again</em> — the Archive contains millions of files and occasional CORS or decode errors are normal.</li>
+          <li>Specific searches work best: try <em>"delta blues slide guitar"</em> rather than just <em>"blues"</em>.</li>
+          <li>Field recordings, old radio broadcasts, and classical orchestras are especially well-represented in the Archive.</li>
+          <li>The WAV file encodes the exact clip you heard — what you preview is exactly what you download.</li>
+        </ul>
+        <h3>Browser Compatibility</h3>
+        <ul>
+          <li>Works in any modern browser (Chrome, Firefox, Safari, Edge). No plug-ins or server required.</li>
+          <li>All audio processing runs locally in your browser via the Web Audio API.</li>
+        </ul>
+      </div>
+    </section>
+
   </div><!-- /.app -->
+
+  <!-- ─── Footer ─── -->
+  <footer class="site-footer">
+    <div class="app">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4>About</h4>
+          <p>Archive Sample Generator is a free, open-source browser tool that surfaces public-domain and Creative Commons audio from the <a href="https://archive.org" target="_blank" rel="noopener">Internet Archive</a> and turns it into ready-to-use WAV samples.</p>
+          <p>No account, no server, no upload — everything runs in your browser.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Legal &amp; Licensing</h4>
+          <p>All audio is sourced from the Internet Archive. Each recording carries its own license — check the <strong>View on Archive.org</strong> link on any sample card for the authoritative license terms before using a clip commercially.</p>
+          <p>Common licenses include <a href="https://creativecommons.org/publicdomain/mark/1.0/" target="_blank" rel="noopener">Public Domain Mark</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY</a>, and <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC</a>.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Disclaimer</h4>
+          <p>This tool is provided as-is with no warranty. We do not host, store, or modify any audio files — all content is streamed directly from archive.org at the time of generation.</p>
+          <p>Always verify the license of a recording before using it in a published work. The presence of a clip in this tool does not constitute a copyright clearance.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Privacy</h4>
+          <p>No personal data is collected. Favorites and history are stored only in your browser's localStorage and never leave your device.</p>
+          <p>Search queries are sent directly to the Internet Archive's public API — this tool does not proxy or log them.</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        Archive Sample Generator &mdash; audio sourced from <a href="https://archive.org" target="_blank" rel="noopener">archive.org</a> under their respective public-domain and Creative Commons licenses.
+      </div>
+    </div>
+  </footer>
 
   <script>
     // ================================================================
@@ -1220,9 +1363,12 @@
       },
 
       wireCollapsibles() {
-        [['fav-header',  'fav-grid',  'fav-arrow'],
-         ['hist-header', 'hist-grid', 'hist-arrow']].forEach(([hId, gId, aId]) => {
-          let open = true;
+        [['fav-header',  'fav-grid',  'fav-arrow',   true],
+         ['hist-header', 'hist-grid', 'hist-arrow',  true],
+         ['howto-header','howto-grid','howto-arrow',  false]].forEach(([hId, gId, aId, startOpen]) => {
+          let open = startOpen;
+          document.getElementById(gId).style.display = open ? '' : 'none';
+          document.getElementById(aId).classList.toggle('open', open);
           document.getElementById(hId).addEventListener('click', () => {
             open = !open;
             document.getElementById(gId).style.display = open ? '' : 'none';

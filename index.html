@@ -207,6 +207,14 @@
     .dual-range input[type="range"]::-webkit-slider-runnable-track { background: transparent; }
     .dual-range input[type="range"]::-moz-range-track              { background: transparent; }
 
+    .search-hint {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin: 0.45rem 0 0.9rem;
+    }
+
+    .search-hint strong { color: var(--text-muted); font-weight: 600; }
+
     /* === Genre Chips === */
     .chips-wrap {
       display: flex;
@@ -676,6 +684,7 @@
       >
       <button class="search-btn" id="search-btn">Search</button>
     </div>
+    <p class="search-hint">Or just hit <strong>Generate</strong> for a random sample — no search needed.</p>
 
     <!-- ─── Genre Chips ─── -->
     <div class="chips-wrap" id="chips-wrap">

@@ -693,10 +693,91 @@
     /* Error hint text inside the banner */
     .error-hint { opacity: 0.75; }
 
+    /* === Search Feedback === */
+    .search-feedback {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin-top: 0.4rem;
+      min-height: 1.1em;
+    }
+    .search-feedback em { color: var(--text-muted); font-style: normal; }
+
+    /* === Exact Length Toggle === */
+    .exact-toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+    }
+    .exact-toggle-row input[type="checkbox"] {
+      accent-color: var(--primary);
+      width: 15px; height: 15px;
+      cursor: pointer;
+    }
+    .exact-toggle-row label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    /* Hide max slider thumb in exact mode */
+    .dual-range.exact-mode #max-slider { display: none; }
+
+    /* === License Badge === */
+    .license-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.15rem 0.6rem;
+      border-radius: 999px;
+      vertical-align: middle;
+    }
+    .license-badge-green {
+      background: rgba(34,197,94,0.12);
+      color: #22C55E;
+      border: 1px solid rgba(34,197,94,0.25);
+    }
+    .license-badge-amber {
+      background: rgba(234,179,8,0.12);
+      color: #CA8A04;
+      border: 1px solid rgba(234,179,8,0.25);
+    }
+
+    /* === Keyboard hint === */
+    .kbd-hint {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-top: 0.3rem;
+      text-align: center;
+    }
+    .kbd-hint kbd {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.05rem 0.35rem;
+      font-size: 0.7rem;
+      font-family: inherit;
+    }
+    /* Hide keyboard hint on touch devices */
+    @media (hover: none) { .kbd-hint { display: none; } }
+
     /* === Responsive === */
+    @media (max-width: 600px) {
+      .generate-section {
+        position: sticky;
+        bottom: 0;
+        z-index: 100;
+        background: var(--bg);
+        padding: 0.75rem 0 0.6rem;
+        border-top: 1px solid var(--border);
+        margin-bottom: 0;
+        box-shadow: 0 -8px 24px rgba(0,0,0,0.6);
+      }
+    }
+
     @media (max-width: 520px) {
       .footer-grid { grid-template-columns: 1fr; }
-      .app { padding: 1.5rem 0.875rem 4rem; }
+      .app { padding: 1.5rem 0.875rem 8rem; }
       .sample-actions { flex-direction: column; }
       .sample-actions .btn { text-align: center; }
       .cards-grid { grid-template-columns: 1fr 1fr; }
@@ -729,6 +810,7 @@
       <button class="search-btn" id="search-btn">Search</button>
     </div>
     <p class="search-hint">Or just hit <strong>Generate</strong> for a random sample — no search needed.</p>
+    <p class="search-feedback" id="search-feedback"></p>
 
     <!-- ─── Genre Chips ─── -->
     <div class="chips-wrap" id="chips-wrap">
@@ -763,6 +845,10 @@
         <input type="range" id="min-slider" min="0.5" max="30" step="0.5" value="2">
         <input type="range" id="max-slider" min="0.5" max="30" step="0.5" value="15">
       </div>
+      <div class="exact-toggle-row">
+        <input type="checkbox" id="exact-toggle">
+        <label for="exact-toggle">Exact length</label>
+      </div>
     </div>
 
     <!-- ─── Generate Button ─── -->
@@ -773,6 +859,7 @@
       </button>
       <p class="status-msg" id="status-msg"></p>
       <p class="generate-hint" id="generate-hint">Tip: if it fails, just hit <em>Generate</em> again — sources vary.</p>
+      <p class="kbd-hint">or press <kbd>Space</kbd></p>
     </div>
 
     <!-- ─── Error Banner ─── -->
@@ -795,6 +882,7 @@
       <div class="sample-info">
         <span id="sample-duration"></span>
         <span id="sample-license"></span>
+        <span id="license-badge" class="license-badge" style="display:none"></span>
         <a id="sample-source-link" href="#" target="_blank" rel="noopener" class="source-link" style="display:none">
           View on Archive.org ↗
         </a>
@@ -1262,7 +1350,9 @@
       },
 
       randomDuration() {
+        const exact = document.getElementById('exact-toggle').checked;
         const min = parseFloat(document.getElementById('min-slider').value);
+        if (exact) return min;
         const max = parseFloat(document.getElementById('max-slider').value);
         return min + Math.random() * (max - min);
       },
@@ -1317,8 +1407,9 @@
     // APP STATE
     // ================================================================
     const State = {
-      isGenerating:  false,
-      currentSample: null, // { wavBlob, metadata }
+      isGenerating:   false,
+      currentSample:  null,  // { wavBlob, metadata }
+      lastSearchTerm: null,  // null = random; string = what user typed/chipped
     };
 
     // ================================================================
@@ -1368,13 +1459,31 @@
         document.getElementById('sample-duration').textContent =
           `⏱ ${meta.sampleDuration.toFixed(1)}s sample`;
 
-        // License — show a human-readable label linking to the license URL
+        // License text link
         const licEl = document.getElementById('sample-license');
         if (meta.licenseurl) {
           const label = this.licenseLabel(meta.licenseurl);
           licEl.innerHTML = `📜 <a href="${meta.licenseurl}" target="_blank" rel="noopener" class="source-link">${label}</a>`;
         } else {
           licEl.textContent = '📜 Public Domain / No known restrictions';
+        }
+
+        // License badge with colour coding
+        const badgeEl = document.getElementById('license-badge');
+        const badgeLabel = meta.licenseurl ? this.licenseLabel(meta.licenseurl) : 'Public Domain';
+        const isPermissive = ['Public Domain', 'CC0 (Public Domain)', 'CC BY', 'Open License'].includes(badgeLabel);
+        badgeEl.textContent = badgeLabel;
+        badgeEl.className   = `license-badge ${isPermissive ? 'license-badge-green' : 'license-badge-amber'}`;
+        badgeEl.style.display = 'inline-block';
+
+        // Search feedback line
+        const fbEl = document.getElementById('search-feedback');
+        if (fbEl) {
+          if (State.lastSearchTerm) {
+            fbEl.innerHTML = `Showing result for: <em>${State.lastSearchTerm}</em>`;
+          } else {
+            fbEl.innerHTML = 'Showing random result — type a search or pick a genre to filter.';
+          }
         }
 
         // Subject tags (up to 6)
@@ -1536,8 +1645,8 @@
         // Dual-range slider for sample length
         const minSlider  = document.getElementById('min-slider');
         const maxSlider  = document.getElementById('max-slider');
-        const minDisplay = document.getElementById('min-display');
-        const maxDisplay = document.getElementById('max-display');
+        let   minDisplay = document.getElementById('min-display');
+        let   maxDisplay = document.getElementById('max-display');
         const dualRange  = document.getElementById('dual-range');
         const SPAN       = SLIDER_ABS_MAX - SLIDER_ABS_MIN;
 
@@ -1563,25 +1672,35 @@
         maxSlider.addEventListener('input', syncSliders);
         syncSliders(); // paint initial track fill
 
-        // Genre chips — clicking sets the search input and highlights the chip;
-        // clicking the active chip again deselects it and clears the search input.
+        // Genre chips — each toggles independently; multiple can be active at once.
         document.querySelectorAll('.chip').forEach(chip => {
-          chip.addEventListener('click', () => {
-            const isActive = chip.classList.contains('active');
-            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            const input = document.getElementById('search-input');
-            if (isActive) {
-              input.value = '';
-            } else {
-              chip.classList.add('active');
-              input.value = chip.dataset.query;
-            }
-          });
+          chip.addEventListener('click', () => chip.classList.toggle('active'));
         });
 
-        // Typing in the search box deselects any active chip
-        document.getElementById('search-input').addEventListener('input', () => {
-          document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        // Exact-length toggle: hide max slider thumb and collapse display to single value
+        const exactToggle  = document.getElementById('exact-toggle');
+        const maxSliderEl  = document.getElementById('max-slider');
+        const maxDisplayEl = document.getElementById('max-display');
+        exactToggle.addEventListener('change', () => {
+          const on = exactToggle.checked;
+          dualRange.classList.toggle('exact-mode', on);
+          maxSliderEl.style.pointerEvents = on ? 'none' : '';
+          maxDisplayEl.parentElement.style.display = on ? 'none' : '';
+          document.querySelector('.slider-values').innerHTML = on
+            ? `<span id="min-display">${document.getElementById('min-display').textContent}</span>s`
+            : `<span id="min-display">${document.getElementById('min-display').textContent}</span>s – <span id="max-display">${maxSliderEl.value}</span>s`;
+          // Re-bind display references after innerHTML replacement
+          minDisplay = document.getElementById('min-display');
+          maxDisplay = document.getElementById('max-display');
+        });
+
+        // Keyboard shortcut: Space (when no input/button focused) triggers generate
+        document.addEventListener('keydown', e => {
+          if (e.code !== 'Space') return;
+          const tag = document.activeElement?.tagName;
+          if (tag === 'INPUT' || tag === 'BUTTON' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+          e.preventDefault();
+          this.generate();
         });
 
         document.getElementById('save-btn').addEventListener('click', () => {
@@ -1601,9 +1720,12 @@
       },
 
       wireCollapsibles() {
-        [['fav-header',  'fav-grid',  'fav-arrow',   true],
-         ['hist-header', 'hist-grid', 'hist-arrow',  true],
-         ['howto-header','howto-grid','howto-arrow',  false]].forEach(([hId, gId, aId, startOpen]) => {
+        // How To Use opens by default on first visit; subsequent visits start collapsed.
+        const howtoOpenByDefault = !localStorage.getItem('howto_seen');
+
+        [['fav-header',  'fav-grid',  'fav-arrow',  true],
+         ['hist-header', 'hist-grid', 'hist-arrow', true],
+         ['howto-header','howto-grid','howto-arrow', howtoOpenByDefault]].forEach(([hId, gId, aId, startOpen]) => {
           let open = startOpen;
           document.getElementById(gId).style.display = open ? '' : 'none';
           document.getElementById(aId).classList.toggle('open', open);
@@ -1611,26 +1733,37 @@
             open = !open;
             document.getElementById(gId).style.display = open ? '' : 'none';
             document.getElementById(aId).classList.toggle('open', open);
+            // Mark seen on first interaction
+            if (hId === 'howto-header') localStorage.setItem('howto_seen', '1');
           });
         });
       },
 
-      // Build the archive.org Lucene query from the search bar value.
+      // Build the archive.org Lucene query from active chips + search bar.
+      // Also records State.lastSearchTerm for the feedback display.
       buildQuery() {
-        const typed = document.getElementById('search-input').value.trim();
-        if (!typed) return DEFAULT_QUERIES[Math.floor(Math.random() * DEFAULT_QUERIES.length)];
+        const typed      = document.getElementById('search-input').value.trim();
+        const chipTerms  = [...document.querySelectorAll('.chip.active')].map(c => c.dataset.query);
+        const allTerms   = [...chipTerms, ...(typed ? [typed] : [])];
 
-        const key = typed.toLowerCase();
+        if (!allTerms.length) {
+          State.lastSearchTerm = null; // signals "random"
+          return DEFAULT_QUERIES[Math.floor(Math.random() * DEFAULT_QUERIES.length)];
+        }
 
-        // Exact match in keyword map → use the curated Lucene fragment
-        if (QUERY_MAP[key]) return `${QUERY_MAP[key]} mediatype:audio`;
+        State.lastSearchTerm = allTerms.join(' + ');
 
-        // Multi-word phrase → quoted subject + title search for precision
-        const safe = typed.replace(/"/g, '');
-        if (safe.includes(' ')) return `(title:"${safe}" OR subject:"${safe}") mediatype:audio`;
+        const toFragment = term => {
+          const key  = term.toLowerCase();
+          if (QUERY_MAP[key]) return QUERY_MAP[key];
+          const safe = term.replace(/"/g, '');
+          if (safe.includes(' ')) return `(title:"${safe}" OR subject:"${safe}")`;
+          return `(title:${safe} OR subject:${safe})`;
+        };
 
-        // Single word → unquoted title + subject for broadest recall
-        return `(title:${safe} OR subject:${safe}) mediatype:audio`;
+        const fragments = allTerms.map(toFragment);
+        const combined  = fragments.length === 1 ? fragments[0] : fragments.join(' AND ');
+        return `${combined} mediatype:audio`;
       },
 
       // Public entry-point for generating a new sample.

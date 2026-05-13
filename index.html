@@ -9,17 +9,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:            #0F172A;
-      --surface:       #1E293B;
-      --surface-2:     #263548;
-      --border:        #334155;
-      --primary:       #3B82F6;
-      --primary-hover: #2563EB;
-      --primary-dim:   rgba(59,130,246,0.15);
-      --text:          #F1F5F9;
-      --text-muted:    #94A3B8;
-      --text-dim:      #64748B;
-      --success:       #10B981;
+      --bg:            #0A0A0A;
+      --surface:       #141414;
+      --surface-2:     #1C1C1C;
+      --border:        #2A2A2A;
+      --primary:       #22C55E;
+      --primary-hover: #16A34A;
+      --primary-dim:   rgba(34,197,94,0.12);
+      --text:          #FAFAFA;
+      --text-muted:    #A1A1AA;
+      --text-dim:      #52525B;
+      --success:       #22C55E;
       --error:         #EF4444;
       --radius:        12px;
       --radius-sm:     8px;
@@ -48,7 +48,7 @@
     .header h1 {
       font-size: clamp(1.8rem, 5vw, 2.8rem);
       font-weight: 800;
-      background: linear-gradient(135deg, #60A5FA 0%, #3B82F6 60%);
+      background: linear-gradient(135deg, #4ADE80 0%, #22C55E 60%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -207,30 +207,62 @@
     .dual-range input[type="range"]::-webkit-slider-runnable-track { background: transparent; }
     .dual-range input[type="range"]::-moz-range-track              { background: transparent; }
 
+    /* === Genre Chips === */
+    .chips-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .chip {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.38rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      line-height: 1.4;
+    }
+
+    .chip:hover { border-color: var(--primary); color: var(--text); }
+
+    .chip.active {
+      background: var(--primary-dim);
+      border-color: var(--primary);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
     /* === Generate Button === */
     .generate-section {
-      text-align: center;
       margin-bottom: 2rem;
     }
 
     .btn-generate {
       background: var(--primary);
-      color: #fff;
+      color: #000;
       border: none;
-      padding: 1rem 2.75rem;
-      border-radius: var(--radius);
-      font-size: 1.1rem;
+      padding: 1rem 2rem;
+      border-radius: 999px;
+      font-size: 1.05rem;
       font-weight: 700;
       cursor: pointer;
       transition: all 0.2s;
       letter-spacing: 0.01em;
-      min-width: 210px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
     }
 
     .btn-generate:hover:not(:disabled) {
       background: var(--primary-hover);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(59,130,246,0.45);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(34,197,94,0.35);
     }
 
     .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
@@ -240,12 +272,11 @@
       display: inline-block;
       width: 15px;
       height: 15px;
-      border: 2px solid rgba(255,255,255,0.35);
-      border-top-color: #fff;
+      border: 2px solid rgba(0,0,0,0.25);
+      border-top-color: #000;
       border-radius: 50%;
       animation: spin 0.65s linear infinite;
-      vertical-align: middle;
-      margin-right: 8px;
+      flex-shrink: 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -414,8 +445,8 @@
     .btn-secondary:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
 
     .btn-success {
-      background: rgba(16,185,129,0.12);
-      border-color: rgba(16,185,129,0.4);
+      background: var(--primary-dim);
+      border-color: rgba(34,197,94,0.4);
       color: var(--success);
     }
 
@@ -646,6 +677,29 @@
       <button class="search-btn" id="search-btn">Search</button>
     </div>
 
+    <!-- ─── Genre Chips ─── -->
+    <div class="chips-wrap" id="chips-wrap">
+      <button class="chip" data-query="jazz">Jazz</button>
+      <button class="chip" data-query="blues">Blues</button>
+      <button class="chip" data-query="soul">Soul</button>
+      <button class="chip" data-query="funk">Funk</button>
+      <button class="chip" data-query="hip hop">Hip Hop</button>
+      <button class="chip" data-query="electronic">Electronic</button>
+      <button class="chip" data-query="ambient">Ambient</button>
+      <button class="chip" data-query="folk">Folk</button>
+      <button class="chip" data-query="classical">Classical</button>
+      <button class="chip" data-query="gospel">Gospel</button>
+      <button class="chip" data-query="country">Country</button>
+      <button class="chip" data-query="reggae">Reggae</button>
+      <button class="chip" data-query="latin">Latin</button>
+      <button class="chip" data-query="drums">Drums</button>
+      <button class="chip" data-query="swing">Swing</button>
+      <button class="chip" data-query="ragtime">Ragtime</button>
+      <button class="chip" data-query="experimental">Experimental</button>
+      <button class="chip" data-query="field recording">Field Rec.</button>
+      <button class="chip" data-query="old radio">Old Radio</button>
+    </div>
+
     <!-- ─── Sample Length Slider ─── -->
     <div class="slider-section">
       <div class="slider-header">
@@ -660,7 +714,10 @@
 
     <!-- ─── Generate Button ─── -->
     <div class="generate-section">
-      <button class="btn-generate" id="generate-btn">Generate Sample</button>
+      <button class="btn-generate" id="generate-btn">
+        <span class="btn-icon">♪</span>
+        Generate Sample
+      </button>
       <p class="status-msg" id="status-msg"></p>
       <p class="generate-hint" id="generate-hint">Tip: if it fails, just hit <em>Generate</em> again — sources vary.</p>
     </div>
@@ -1218,7 +1275,9 @@
         State.isGenerating = on;
         const genBtn   = document.getElementById('generate-btn');
         const againBtn = document.getElementById('again-btn');
-        genBtn.innerHTML   = on ? '<span class="spinner"></span>Generating…' : 'Generate Sample';
+        genBtn.innerHTML   = on
+          ? '<span class="spinner"></span>Generating…'
+          : '<span class="btn-icon">♪</span>Generate Sample';
         genBtn.disabled    = on;
         if (againBtn) againBtn.disabled = on;
         document.getElementById('sample-card').classList.toggle('loading', on);
@@ -1433,6 +1492,27 @@
         minSlider.addEventListener('input', syncSliders);
         maxSlider.addEventListener('input', syncSliders);
         syncSliders(); // paint initial track fill
+
+        // Genre chips — clicking sets the search input and highlights the chip;
+        // clicking the active chip again deselects it and clears the search input.
+        document.querySelectorAll('.chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+            const isActive = chip.classList.contains('active');
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            const input = document.getElementById('search-input');
+            if (isActive) {
+              input.value = '';
+            } else {
+              chip.classList.add('active');
+              input.value = chip.dataset.query;
+            }
+          });
+        });
+
+        // Typing in the search box deselects any active chip
+        document.getElementById('search-input').addEventListener('input', () => {
+          document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        });
 
         document.getElementById('save-btn').addEventListener('click', () => {
           if (!State.currentSample) return;

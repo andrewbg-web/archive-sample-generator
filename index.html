@@ -1137,11 +1137,11 @@
         setTimeout(() => URL.revokeObjectURL(url), 8000);
       },
 
-      // Pick a random start offset (5%–72% of duration) to avoid silence at ends.
+      // Pick a random start offset that guarantees the full clip fits before the end of the buffer.
       randomStart(duration, clipDur) {
         const lo = duration * 0.05;
-        const hi = Math.max(lo, duration * 0.72 - clipDur);
-        return lo + Math.random() * (hi - lo);
+        const hi = Math.max(lo, duration - clipDur - duration * 0.05);
+        return lo + Math.random() * Math.max(0, hi - lo);
       },
 
       randomDuration() {
@@ -1559,8 +1559,16 @@
 
         // 4. Decide clip parameters NOW when file duration is known,
         //    so we can use a targeted Range request instead of downloading the whole file.
+        const sliderMin = parseFloat(document.getElementById('min-slider').value);
+
+        // Skip files known to be shorter than the slider minimum
+        if (knownDur > 0 && knownDur < sliderMin + 1) {
+          console.warn(`[Generate] File too short (${knownDur.toFixed(1)}s) for slider min (${sliderMin}s), retrying`);
+          return this._generate(attempt + 1);
+        }
+
         let clipDur, startSec;
-        const canRange = knownDur > SLIDER_ABS_MIN + 5 && knownSize > 0;
+        const canRange = knownDur >= sliderMin + 2 && knownSize > 0;
         if (canRange) {
           clipDur  = AudioProcessor.randomDuration();
           startSec = AudioProcessor.randomStart(knownDur, clipDur);
@@ -1606,6 +1614,13 @@
 
         UI.setStatus('Extracting sample…');
         const clip = await AudioProcessor.extractSample(decoded, extractAt, clipDur);
+
+        // Guard: decoded buffer may be shorter than expected (encoding gaps, Range imprecision).
+        // If the extracted clip falls outside the slider range, retry rather than deliver a wrong-length sample.
+        if (clip.duration < sliderMin - 0.5) {
+          console.warn(`[Generate] Clip ${clip.duration.toFixed(1)}s < slider min ${sliderMin}s — retrying`);
+          return this._generate(attempt + 1);
+        }
 
         // 8. Encode WAV and create preview URL
         const wavBlob    = AudioProcessor.encodeWAV(clip);

@@ -720,8 +720,7 @@
       cursor: pointer;
       user-select: none;
     }
-    /* Hide max slider thumb in exact mode */
-    .dual-range.exact-mode #max-slider { display: none; }
+    /* max slider hidden in exact mode via JS */
 
     /* === License Badge === */
     .license-badge {
@@ -839,7 +838,7 @@
     <div class="slider-section">
       <div class="slider-header">
         <span class="slider-label">Sample Length</span>
-        <span class="slider-values"><span id="min-display">2.0</span>s – <span id="max-display">15.0</span>s</span>
+        <span class="slider-values"><span id="min-display">2.0</span>s<span id="slider-range-suffix"> – <span id="max-display">15.0</span>s</span></span>
       </div>
       <div class="dual-range" id="dual-range">
         <input type="range" id="min-slider" min="0.5" max="30" step="0.5" value="2">
@@ -1643,27 +1642,46 @@
         document.getElementById('error-close').addEventListener('click', () => UI.hideError());
 
         // Dual-range slider for sample length
-        const minSlider  = document.getElementById('min-slider');
-        const maxSlider  = document.getElementById('max-slider');
-        let   minDisplay = document.getElementById('min-display');
-        let   maxDisplay = document.getElementById('max-display');
-        const dualRange  = document.getElementById('dual-range');
-        const SPAN       = SLIDER_ABS_MAX - SLIDER_ABS_MIN;
+        const minSlider    = document.getElementById('min-slider');
+        const maxSlider    = document.getElementById('max-slider');
+        const minDisplay   = document.getElementById('min-display');
+        const maxDisplay   = document.getElementById('max-display');
+        const rangeSuffix  = document.getElementById('slider-range-suffix');
+        const dualRange    = document.getElementById('dual-range');
+        const exactToggle  = document.getElementById('exact-toggle');
+        const SPAN         = SLIDER_ABS_MAX - SLIDER_ABS_MIN;
 
         const syncSliders = () => {
           let lo = parseFloat(minSlider.value);
-          let hi = parseFloat(maxSlider.value);
-          // Keep a minimum gap of 0.5 s; whichever thumb moved takes priority
-          if (lo >= hi) {
-            if (document.activeElement === minSlider) { lo = hi - 0.5; minSlider.value = lo; }
-            else                                      { hi = lo + 0.5; maxSlider.value = hi; }
+          const exact = exactToggle.checked;
+
+          if (!exact) {
+            let hi = parseFloat(maxSlider.value);
+            if (lo >= hi) {
+              if (document.activeElement === minSlider) { lo = hi - 0.5; minSlider.value = lo; }
+              else                                      { hi = lo + 0.5; maxSlider.value = hi; }
+            }
+            maxDisplay.textContent = hi.toFixed(1);
+            const pct = v => ((v - SLIDER_ABS_MIN) / SPAN * 100).toFixed(2) + '%';
+            dualRange.style.setProperty('--min-pct', pct(lo));
+            dualRange.style.setProperty('--max-pct', pct(hi));
+          } else {
+            // In exact mode collapse the filled track to just the one thumb position
+            const pct = v => ((v - SLIDER_ABS_MIN) / SPAN * 100).toFixed(2) + '%';
+            dualRange.style.setProperty('--min-pct', '0%');
+            dualRange.style.setProperty('--max-pct', pct(lo));
           }
           minDisplay.textContent = lo.toFixed(1);
-          maxDisplay.textContent = hi.toFixed(1);
-          const pct = v => ((v - SLIDER_ABS_MIN) / SPAN * 100).toFixed(2) + '%';
-          dualRange.style.setProperty('--min-pct', pct(lo));
-          dualRange.style.setProperty('--max-pct', pct(hi));
         };
+
+        // Exact-length toggle: hide the max thumb and the "– Xs" suffix
+        exactToggle.addEventListener('change', () => {
+          const on = exactToggle.checked;
+          dualRange.classList.toggle('exact-mode', on);
+          maxSlider.style.display    = on ? 'none' : '';
+          rangeSuffix.style.display  = on ? 'none' : '';
+          syncSliders();
+        });
 
         // Bring the active thumb to the front so it stays grabbable when they overlap
         minSlider.addEventListener('pointerdown', () => { minSlider.style.zIndex = 2; maxSlider.style.zIndex = 1; });
@@ -1675,23 +1693,6 @@
         // Genre chips — each toggles independently; multiple can be active at once.
         document.querySelectorAll('.chip').forEach(chip => {
           chip.addEventListener('click', () => chip.classList.toggle('active'));
-        });
-
-        // Exact-length toggle: hide max slider thumb and collapse display to single value
-        const exactToggle  = document.getElementById('exact-toggle');
-        const maxSliderEl  = document.getElementById('max-slider');
-        const maxDisplayEl = document.getElementById('max-display');
-        exactToggle.addEventListener('change', () => {
-          const on = exactToggle.checked;
-          dualRange.classList.toggle('exact-mode', on);
-          maxSliderEl.style.pointerEvents = on ? 'none' : '';
-          maxDisplayEl.parentElement.style.display = on ? 'none' : '';
-          document.querySelector('.slider-values').innerHTML = on
-            ? `<span id="min-display">${document.getElementById('min-display').textContent}</span>s`
-            : `<span id="min-display">${document.getElementById('min-display').textContent}</span>s – <span id="max-display">${maxSliderEl.value}</span>s`;
-          // Re-bind display references after innerHTML replacement
-          minDisplay = document.getElementById('min-display');
-          maxDisplay = document.getElementById('max-display');
         });
 
         // Keyboard shortcut: Space (when no input/button focused) triggers generate

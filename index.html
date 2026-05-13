@@ -647,6 +647,41 @@
       line-height: 1.6;
     }
 
+    /* === Cookie Notice === */
+    .cookie-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #1C1C1C;
+      border-top: 1px solid #2A2A2A;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      z-index: 999;
+    }
+
+    .cookie-bar p { flex: 1; min-width: 200px; line-height: 1.5; }
+    .cookie-bar a { color: var(--primary); text-decoration: none; }
+    .cookie-bar a:hover { text-decoration: underline; }
+
+    .cookie-btn {
+      background: var(--primary);
+      color: #000;
+      border: none;
+      padding: 0.45rem 1.1rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .cookie-btn:hover { background: var(--primary-hover); }
+
     /* Error hint text inside the banner */
     .error-hint { opacity: 0.75; }
 
@@ -831,30 +866,37 @@
       <div class="footer-grid">
         <div class="footer-col">
           <h4>About</h4>
-          <p>Archive Sample Generator is a free, open-source browser tool that surfaces public-domain and Creative Commons audio from the <a href="https://archive.org" target="_blank" rel="noopener">Internet Archive</a> and turns it into ready-to-use WAV samples.</p>
-          <p>No account, no server, no upload — everything runs in your browser.</p>
+          <p>Archive Sample Generator is a free browser tool that surfaces public-domain and Creative Commons audio from the <a href="https://archive.org" target="_blank" rel="noopener">Internet Archive</a> and turns it into ready-to-use WAV samples.</p>
+          <p>No account, no server, no upload — everything runs in your browser. This site is supported by advertising.</p>
         </div>
         <div class="footer-col">
           <h4>Legal &amp; Licensing</h4>
           <p>All audio is sourced from the Internet Archive. Each recording carries its own license — check the <strong>View on Archive.org</strong> link on any sample card for the authoritative license terms before using a clip commercially.</p>
-          <p>Common licenses include <a href="https://creativecommons.org/publicdomain/mark/1.0/" target="_blank" rel="noopener">Public Domain Mark</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY</a>, and <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC</a>.</p>
+          <p>Common licenses include <a href="https://creativecommons.org/publicdomain/mark/1.0/" target="_blank" rel="noopener">Public Domain Mark</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY</a>, and <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC</a>. Always verify before commercial use.</p>
         </div>
         <div class="footer-col">
           <h4>Disclaimer</h4>
           <p>This tool is provided as-is with no warranty. We do not host, store, or modify any audio files — all content is streamed directly from archive.org at the time of generation.</p>
-          <p>Always verify the license of a recording before using it in a published work. The presence of a clip in this tool does not constitute a copyright clearance.</p>
+          <p>Search results may not always match the search term exactly. This tool is intended for creative inspiration only. The presence of a clip does not constitute a copyright clearance.</p>
         </div>
         <div class="footer-col">
-          <h4>Privacy</h4>
-          <p>No personal data is collected. Favorites and history are stored only in your browser's localStorage and never leave your device.</p>
-          <p>Search queries are sent directly to the Internet Archive's public API — this tool does not proxy or log them.</p>
+          <h4>Privacy &amp; Cookies</h4>
+          <p>This site uses Google AdSense to display ads. Google and its partners use cookies to serve ads based on your prior visits to this site and others. You can opt out of personalised advertising by visiting <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener">Google Ad Settings</a> or <a href="https://www.aboutads.info" target="_blank" rel="noopener">aboutads.info</a>.</p>
+          <p>Your favourites and history are stored only in your browser's localStorage and never leave your device. We do not collect or store any personal data ourselves.</p>
         </div>
       </div>
       <div class="footer-bottom">
-        Archive Sample Generator &mdash; audio sourced from <a href="https://archive.org" target="_blank" rel="noopener">archive.org</a> under their respective public-domain and Creative Commons licenses.
+        &copy; 2025 randomsamplegenerator.com &mdash; audio sourced from <a href="https://archive.org" target="_blank" rel="noopener">archive.org</a> under their respective public-domain and Creative Commons licenses.
+        By using this site you acknowledge our use of cookies for advertising as described above.
       </div>
     </div>
   </footer>
+
+  <!-- ─── Cookie Notice ─── -->
+  <div class="cookie-bar" id="cookie-bar">
+    <p>We use cookies to serve personalised ads via Google AdSense. By continuing to use this site you agree to our use of cookies. <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener">Manage ad preferences</a> · <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">Learn more</a></p>
+    <button class="cookie-btn" id="cookie-ok">Got it</button>
+  </div>
 
   <script>
     // ================================================================
@@ -1460,6 +1502,16 @@
         this.wireCollapsibles();
         UI.renderGrid('favorites');
         UI.renderGrid('history');
+        this.initCookieNotice();
+      },
+
+      initCookieNotice() {
+        const bar = document.getElementById('cookie-bar');
+        if (localStorage.getItem('cookie_ok')) { bar.style.display = 'none'; return; }
+        document.getElementById('cookie-ok').addEventListener('click', () => {
+          localStorage.setItem('cookie_ok', '1');
+          bar.style.display = 'none';
+        });
       },
 
       wireEvents() {

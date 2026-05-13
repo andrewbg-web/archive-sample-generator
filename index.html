@@ -921,7 +921,7 @@
       <div class="sample-actions">
         <button class="btn btn-primary" id="save-btn">♡ Save to Favorites</button>
         <button class="btn btn-secondary" id="download-btn">⬇ Download WAV</button>
-        <button class="btn btn-secondary" id="share-btn">↑ Share</button>
+        <button class="btn btn-secondary" id="share-btn">⤴ Share</button>
         <button class="btn btn-secondary" id="again-btn">↺ Generate Again</button>
       </div>
     </div>
@@ -1595,7 +1595,7 @@
 
         // Ensure share button is visible and reset after each generation
         const shareBtn = document.getElementById('share-btn');
-        if (shareBtn) { shareBtn.style.display = ''; shareBtn.textContent = '↑ Share'; }
+        if (shareBtn) { shareBtn.style.display = ''; shareBtn.textContent = '⤴ Share'; }
 
         // Load audio into player and auto-play
         const player = document.getElementById('audio-player');
@@ -1664,6 +1664,7 @@
             <div class="mini-card-actions">
               <button class="mini-btn" data-action="play" data-id="${e.id}" data-key="${stKey}">▶ Play</button>
               <button class="mini-btn" data-action="download" data-id="${e.id}" data-key="${stKey}">⬇ WAV</button>
+              <button class="mini-btn mini-share-btn" data-title="${(e.title||'Untitled').replace(/"/g,'&quot;')}" data-creator="${(e.creator||'').replace(/"/g,'&quot;')}">⤴ Share</button>
             </div>
           </div>
         `).join('');
@@ -1678,7 +1679,7 @@
         });
 
         // Play / Download buttons
-        grid.querySelectorAll('.mini-btn').forEach(btn => {
+        grid.querySelectorAll('.mini-btn:not(.mini-share-btn)').forEach(btn => {
           btn.addEventListener('click', async () => {
             const storageKey = btn.dataset.key;
             const id         = btn.dataset.id;
@@ -1696,6 +1697,39 @@
             } finally {
               btn.textContent = action === 'download' ? '⬇ WAV' : '▶ Play';
               btn.disabled = false;
+            }
+          });
+        });
+
+        // Share buttons on mini-cards
+        grid.querySelectorAll('.mini-share-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const title   = btn.dataset.title || 'Untitled';
+            const creator = btn.dataset.creator;
+            const text    = creator ? `"${title}" by ${creator}` : `"${title}"`;
+            const shareData = {
+              title: 'Random Sample Generator',
+              text:  `Check out this audio sample: ${text}`,
+              url:   'https://randomsamplegenerator.com',
+            };
+            try {
+              if (navigator.share) {
+                await navigator.share(shareData);
+              } else {
+                await navigator.clipboard.writeText(`${shareData.text} — ${shareData.url}`);
+                const orig = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => { btn.textContent = orig; }, 2000);
+              }
+            } catch (e) {
+              if (e.name !== 'AbortError') {
+                try {
+                  await navigator.clipboard.writeText(`${shareData.text} — ${shareData.url}`);
+                  const orig = btn.textContent;
+                  btn.textContent = '✓ Copied!';
+                  setTimeout(() => { btn.textContent = orig; }, 2000);
+                } catch { /* silently ignore */ }
+              }
             }
           });
         });

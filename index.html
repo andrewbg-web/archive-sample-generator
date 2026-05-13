@@ -253,6 +253,41 @@
       font-weight: 600;
     }
 
+    /* === Language Selector === */
+    .lang-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1.25rem;
+    }
+    .lang-label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .lang-select {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 0.38rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394A3B8'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.65rem center;
+      padding-right: 1.8rem;
+    }
+    .lang-select:hover, .lang-select:focus {
+      border-color: var(--primary);
+      color: var(--text);
+      outline: none;
+    }
+    .lang-select option { background: #1E293B; color: var(--text); }
+
     /* === Generate Button === */
     .generate-section {
       margin-bottom: 2rem;
@@ -702,26 +737,6 @@
     }
     .search-feedback em { color: var(--text-muted); font-style: normal; }
 
-    /* === Exact Length Toggle === */
-    .exact-toggle-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-top: 0.6rem;
-    }
-    .exact-toggle-row input[type="checkbox"] {
-      accent-color: var(--primary);
-      width: 15px; height: 15px;
-      cursor: pointer;
-    }
-    .exact-toggle-row label {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      cursor: pointer;
-      user-select: none;
-    }
-    /* max slider hidden in exact mode via JS */
-
     /* === License Badge === */
     .license-badge {
       display: inline-block;
@@ -834,6 +849,26 @@
       <button class="chip" data-query="old radio">Old Radio</button>
     </div>
 
+    <!-- ─── Language Filter ─── -->
+    <div class="lang-row">
+      <span class="lang-label">🌐 Language:</span>
+      <select class="lang-select" id="lang-select">
+        <option value="">Any</option>
+        <option value="English">English</option>
+        <option value="Spanish">Spanish</option>
+        <option value="French">French</option>
+        <option value="Portuguese">Portuguese</option>
+        <option value="German">German</option>
+        <option value="Italian">Italian</option>
+        <option value="Russian">Russian</option>
+        <option value="Arabic">Arabic</option>
+        <option value="Hindi">Hindi</option>
+        <option value="Japanese">Japanese</option>
+        <option value="Chinese">Chinese</option>
+        <option value="Korean">Korean</option>
+      </select>
+    </div>
+
     <!-- ─── Sample Length Slider ─── -->
     <div class="slider-section">
       <div class="slider-header">
@@ -843,10 +878,6 @@
       <div class="dual-range" id="dual-range">
         <input type="range" id="min-slider" min="0.5" max="30" step="0.5" value="2">
         <input type="range" id="max-slider" min="0.5" max="30" step="0.5" value="15">
-      </div>
-      <div class="exact-toggle-row">
-        <input type="checkbox" id="exact-toggle">
-        <label for="exact-toggle">Exact length</label>
       </div>
     </div>
 
@@ -870,7 +901,7 @@
     <!-- ─── Placeholder (shown before first generation) ─── -->
     <div class="sample-placeholder" id="sample-placeholder">
       <span class="placeholder-icon">🎵</span>
-      <p>Click <strong>Generate Sample</strong> to pull a random clip from the Internet Archive's public-domain audio collection</p>
+      <p>Click <strong>Generate Sample</strong> to pull a random clip from the Internet Archive or Wikimedia Commons public-domain audio collections</p>
     </div>
 
     <!-- ─── Current Sample Card ─── -->
@@ -883,13 +914,14 @@
         <span id="sample-license"></span>
         <span id="license-badge" class="license-badge" style="display:none"></span>
         <a id="sample-source-link" href="#" target="_blank" rel="noopener" class="source-link" style="display:none">
-          View on Archive.org ↗
+          View Source ↗
         </a>
       </div>
       <audio id="audio-player" controls preload="auto"></audio>
       <div class="sample-actions">
         <button class="btn btn-primary" id="save-btn">♡ Save to Favorites</button>
         <button class="btn btn-secondary" id="download-btn">⬇ Download WAV</button>
+        <button class="btn btn-secondary" id="share-btn">↑ Share</button>
         <button class="btn btn-secondary" id="again-btn">↺ Generate Again</button>
       </div>
     </div>
@@ -931,7 +963,7 @@
       <div class="howto-body" id="howto-grid" style="display:none">
         <h3>Getting Started</h3>
         <ol>
-          <li><strong>Hit Generate Sample</strong> — the app picks a random public-domain recording from the Internet Archive, cuts a clip at a random point, and plays it instantly.</li>
+          <li><strong>Hit Generate Sample</strong> — the app picks a random public-domain recording from the Internet Archive or Wikimedia Commons, cuts a clip at a random point, and plays it instantly.</li>
           <li><strong>Use the search bar</strong> to narrow results by keyword, genre, instrument, mood, or decade (e.g. "1940s jazz trumpet" or "ambient rain").</li>
           <li><strong>Adjust the Sample Length slider</strong> to set the minimum and maximum clip duration (0.5 s – 20 s).</li>
           <li><strong>Download WAV</strong> saves a lossless 16-bit PCM file you can drop straight into any DAW or sampler.</li>
@@ -961,17 +993,17 @@
       <div class="footer-grid">
         <div class="footer-col">
           <h4>About</h4>
-          <p>Random Sample Generator is a free browser tool that surfaces public-domain and Creative Commons audio from the <a href="https://archive.org" target="_blank" rel="noopener">Internet Archive</a> and turns it into ready-to-use WAV samples.</p>
+          <p>Random Sample Generator is a free browser tool that surfaces public-domain and Creative Commons audio from the <a href="https://archive.org" target="_blank" rel="noopener">Internet Archive</a> and <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a> and turns it into ready-to-use WAV samples.</p>
           <p>No account, no server, no upload — everything runs in your browser. This site is supported by advertising.</p>
         </div>
         <div class="footer-col">
           <h4>Legal &amp; Licensing</h4>
-          <p>All audio is sourced from the Internet Archive. Each recording carries its own license — check the <strong>View on Archive.org</strong> link on any sample card for the authoritative license terms before using a clip commercially.</p>
+          <p>Audio is sourced from the <a href="https://archive.org" target="_blank" rel="noopener">Internet Archive</a> and <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a>. Each recording carries its own license — use the <strong>View Source</strong> link on any sample card to verify terms before commercial use.</p>
           <p>Common licenses include <a href="https://creativecommons.org/publicdomain/mark/1.0/" target="_blank" rel="noopener">Public Domain Mark</a>, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY</a>, and <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC</a>. Always verify before commercial use.</p>
         </div>
         <div class="footer-col">
           <h4>Disclaimer</h4>
-          <p>This tool is provided as-is with no warranty. We do not host, store, or modify any audio files — all content is streamed directly from archive.org at the time of generation.</p>
+          <p>This tool is provided as-is with no warranty. We do not host, store, or modify any audio files — all content is streamed directly from archive.org or commons.wikimedia.org at the time of generation.</p>
           <p>Search results may not always match the search term exactly. This tool is intended for creative inspiration only. The presence of a clip does not constitute a copyright clearance.</p>
         </div>
         <div class="footer-col">
@@ -981,7 +1013,7 @@
         </div>
       </div>
       <div class="footer-bottom">
-        &copy; 2025 randomsamplegenerator.com &mdash; audio sourced from <a href="https://archive.org" target="_blank" rel="noopener">archive.org</a> under their respective public-domain and Creative Commons licenses.
+        &copy; 2025 randomsamplegenerator.com &mdash; audio sourced from <a href="https://archive.org" target="_blank" rel="noopener">archive.org</a> and <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a> under their respective public-domain and Creative Commons licenses.
         By using this site you acknowledge our use of cookies for advertising as described above.
       </div>
     </div>
@@ -1175,6 +1207,60 @@
     };
 
     // ================================================================
+    // WIKIMEDIA COMMONS API MODULE
+    // Secondary audio source — free, CORS-enabled, no API key required.
+    // ================================================================
+    const WikimediaAPI = {
+      async search(rawQuery) {
+        // Strip Lucene-specific syntax down to plain search terms
+        const term = rawQuery
+          .replace(/\s*mediatype:audio/gi, '')
+          .replace(/collection:\S+/gi, '')
+          .replace(/[()]/g, '')
+          .replace(/\b(AND|OR)\b/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        const url = 'https://commons.wikimedia.org/w/api.php?' + [
+          'action=query',
+          'generator=search',
+          `gsrsearch=${encodeURIComponent(term + ' filetype:audio')}`,
+          'gsrnamespace=6',
+          'gsrlimit=25',
+          'prop=imageinfo',
+          'iiprop=url|size|extmetadata',
+          'iiextmetadatafilter=LicenseUrl|Artist|ObjectName',
+          'format=json',
+          'origin=*',
+        ].join('&');
+
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`Wikimedia API HTTP ${resp.status}`);
+        const data = await resp.json();
+
+        const pages = data.query?.pages;
+        if (!pages) return [];
+
+        return Object.values(pages).filter(p => {
+          const info = p.imageinfo?.[0];
+          if (!info?.url) return false;
+          const u = info.url.toLowerCase().split('?')[0];
+          return AUDIO_EXTS.some(e => u.endsWith(e));
+        }).map(p => {
+          const info = p.imageinfo[0];
+          const ext  = info.extmetadata || {};
+          return {
+            title:      (ext.ObjectName?.value || p.title.replace(/^File:/, '')).replace(/\.[^.]+$/, ''),
+            artist:     (ext.Artist?.value || '').replace(/<[^>]*>/g, '').trim(),
+            licenseurl: ext.LicenseUrl?.value || '',
+            url:        info.url,
+            size:       info.size || 0,
+          };
+        });
+      },
+    };
+
+    // ================================================================
     // AUDIO PROCESSOR MODULE
     // Handles fetching audio, decoding it, cutting a clip, encoding WAV.
     // ================================================================
@@ -1349,9 +1435,7 @@
       },
 
       randomDuration() {
-        const exact = document.getElementById('exact-toggle').checked;
         const min = parseFloat(document.getElementById('min-slider').value);
-        if (exact) return min;
         const max = parseFloat(document.getElementById('max-slider').value);
         return min + Math.random() * (max - min);
       },
@@ -1497,12 +1581,21 @@
           tagsEl.appendChild(span);
         });
 
-        // Archive.org source link
+        // Source link — points to archive.org item page or Wikimedia file URL
         const srcLink = document.getElementById('sample-source-link');
-        if (meta.sourceIdentifier) {
+        if (meta.source === 'wikimedia' && meta.directURL) {
+          srcLink.href = meta.directURL;
+          srcLink.style.display = 'inline';
+        } else if (meta.sourceIdentifier) {
           srcLink.href = `https://archive.org/details/${meta.sourceIdentifier}`;
           srcLink.style.display = 'inline';
+        } else {
+          srcLink.style.display = 'none';
         }
+
+        // Ensure share button is visible and reset after each generation
+        const shareBtn = document.getElementById('share-btn');
+        if (shareBtn) { shareBtn.style.display = ''; shareBtn.textContent = '↑ Share'; }
 
         // Load audio into player and auto-play
         const player = document.getElementById('audio-player');
@@ -1646,42 +1739,22 @@
         const maxSlider    = document.getElementById('max-slider');
         const minDisplay   = document.getElementById('min-display');
         const maxDisplay   = document.getElementById('max-display');
-        const rangeSuffix  = document.getElementById('slider-range-suffix');
         const dualRange    = document.getElementById('dual-range');
-        const exactToggle  = document.getElementById('exact-toggle');
         const SPAN         = SLIDER_ABS_MAX - SLIDER_ABS_MIN;
 
         const syncSliders = () => {
           let lo = parseFloat(minSlider.value);
-          const exact = exactToggle.checked;
-
-          if (!exact) {
-            let hi = parseFloat(maxSlider.value);
-            if (lo >= hi) {
-              if (document.activeElement === minSlider) { lo = hi - 0.5; minSlider.value = lo; }
-              else                                      { hi = lo + 0.5; maxSlider.value = hi; }
-            }
-            maxDisplay.textContent = hi.toFixed(1);
-            const pct = v => ((v - SLIDER_ABS_MIN) / SPAN * 100).toFixed(2) + '%';
-            dualRange.style.setProperty('--min-pct', pct(lo));
-            dualRange.style.setProperty('--max-pct', pct(hi));
-          } else {
-            // In exact mode collapse the filled track to just the one thumb position
-            const pct = v => ((v - SLIDER_ABS_MIN) / SPAN * 100).toFixed(2) + '%';
-            dualRange.style.setProperty('--min-pct', '0%');
-            dualRange.style.setProperty('--max-pct', pct(lo));
+          let hi = parseFloat(maxSlider.value);
+          if (lo >= hi) {
+            if (document.activeElement === minSlider) { lo = hi - 0.5; minSlider.value = lo; }
+            else                                      { hi = lo + 0.5; maxSlider.value = hi; }
           }
+          maxDisplay.textContent = hi.toFixed(1);
+          const pct = v => ((v - SLIDER_ABS_MIN) / SPAN * 100).toFixed(2) + '%';
+          dualRange.style.setProperty('--min-pct', pct(lo));
+          dualRange.style.setProperty('--max-pct', pct(hi));
           minDisplay.textContent = lo.toFixed(1);
         };
-
-        // Exact-length toggle: hide the max thumb and the "– Xs" suffix
-        exactToggle.addEventListener('change', () => {
-          const on = exactToggle.checked;
-          dualRange.classList.toggle('exact-mode', on);
-          maxSlider.style.display    = on ? 'none' : '';
-          rangeSuffix.style.display  = on ? 'none' : '';
-          syncSliders();
-        });
 
         // Bring the active thumb to the front so it stays grabbable when they overlap
         minSlider.addEventListener('pointerdown', () => { minSlider.style.zIndex = 2; maxSlider.style.zIndex = 1; });
@@ -1718,6 +1791,40 @@
             `archive-sample-${Date.now()}.wav`
           );
         });
+
+        document.getElementById('share-btn').addEventListener('click', async () => {
+          if (!State.currentSample) return;
+          const { title, creator } = State.currentSample.metadata;
+          const shareText = creator
+            ? `"${title}" by ${creator}`
+            : `"${title}"`;
+          const shareData = {
+            title: 'Random Sample Generator',
+            text: `Check out this audio sample I found: ${shareText}`,
+            url: 'https://randomsamplegenerator.com',
+          };
+          const btn = document.getElementById('share-btn');
+          try {
+            if (navigator.share) {
+              await navigator.share(shareData);
+            } else {
+              await navigator.clipboard.writeText(`${shareData.text} — ${shareData.url}`);
+              const orig = btn.textContent;
+              btn.textContent = '✓ Copied!';
+              setTimeout(() => { btn.textContent = orig; }, 2000);
+            }
+          } catch (e) {
+            if (e.name !== 'AbortError') {
+              // Clipboard fallback if share sheet dismissed with error
+              try {
+                await navigator.clipboard.writeText(`${shareData.text} — ${shareData.url}`);
+                const orig = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => { btn.textContent = orig; }, 2000);
+              } catch { /* silently ignore */ }
+            }
+          }
+        });
       },
 
       wireCollapsibles() {
@@ -1745,14 +1852,18 @@
       buildQuery() {
         const typed      = document.getElementById('search-input').value.trim();
         const chipTerms  = [...document.querySelectorAll('.chip.active')].map(c => c.dataset.query);
+        const lang       = document.getElementById('lang-select')?.value || '';
         const allTerms   = [...chipTerms, ...(typed ? [typed] : [])];
 
+        const langSuffix = lang ? ` language:${lang}` : '';
+
         if (!allTerms.length) {
-          State.lastSearchTerm = null; // signals "random"
-          return DEFAULT_QUERIES[Math.floor(Math.random() * DEFAULT_QUERIES.length)];
+          State.lastSearchTerm = lang || null;
+          const base = DEFAULT_QUERIES[Math.floor(Math.random() * DEFAULT_QUERIES.length)];
+          return base + langSuffix;
         }
 
-        State.lastSearchTerm = allTerms.join(' + ');
+        State.lastSearchTerm = [...allTerms, ...(lang ? [lang] : [])].join(' + ');
 
         const toFragment = term => {
           const key  = term.toLowerCase();
@@ -1764,7 +1875,7 @@
 
         const fragments = allTerms.map(toFragment);
         const combined  = fragments.length === 1 ? fragments[0] : fragments.join(' AND ');
-        return `${combined} mediatype:audio`;
+        return `${combined} mediatype:audio${langSuffix}`;
       },
 
       // Public entry-point for generating a new sample.
@@ -1789,6 +1900,19 @@
       // Inner generation logic; retries up to 4 times on recoverable failures.
       async _generate(attempt) {
         if (attempt > 4) throw new Error('MAX_RETRIES');
+
+        // 40% chance to try Wikimedia Commons first
+        if (Math.random() < 0.4) {
+          try {
+            return await this._generateWikimedia(0);
+          } catch (e) {
+            if (e.message === 'MAX_RETRIES') {
+              console.warn('[Wikimedia] Exhausted retries, falling back to Archive.org');
+            } else {
+              throw e;
+            }
+          }
+        }
 
         const query = this.buildQuery();
         console.log(`[Generate] attempt=${attempt} query="${query}"`);
@@ -1934,11 +2058,88 @@
         UI.renderGrid('favorites');
       },
 
+      async _generateWikimedia(attempt) {
+        if (attempt > 3) throw new Error('MAX_RETRIES');
+
+        const query = this.buildQuery();
+        console.log(`[Wikimedia] attempt=${attempt} query="${query}"`);
+
+        UI.setStatus('Searching Wikimedia Commons…');
+        let items;
+        try {
+          items = await WikimediaAPI.search(query);
+        } catch (e) {
+          console.warn('[Wikimedia] Search error:', e.message);
+          throw new Error('MAX_RETRIES');
+        }
+
+        if (!items.length) {
+          console.warn('[Wikimedia] No results');
+          throw new Error('MAX_RETRIES');
+        }
+
+        const item = items[Math.floor(Math.random() * items.length)];
+        console.log('[Wikimedia] Picked:', item.title, item.url);
+
+        const sliderMin = parseFloat(document.getElementById('min-slider').value);
+
+        UI.setStatus('Downloading audio…');
+        let arrayBuffer;
+        try {
+          arrayBuffer = await AudioProcessor.fetchArrayBuffer(item.url);
+        } catch (e) {
+          console.warn('[Wikimedia] Fetch fail, retrying:', e.message);
+          return this._generateWikimedia(attempt + 1);
+        }
+
+        UI.setStatus('Decoding audio…');
+        let decoded;
+        try {
+          decoded = await AudioProcessor.decode(arrayBuffer);
+        } catch {
+          console.warn('[Wikimedia] Decode fail, retrying');
+          return this._generateWikimedia(attempt + 1);
+        }
+
+        const clipDur  = AudioProcessor.randomDuration();
+        const startSec = AudioProcessor.randomStart(decoded.duration, clipDur);
+
+        UI.setStatus('Extracting sample…');
+        const clip = await AudioProcessor.extractSample(decoded, startSec, clipDur);
+
+        if (clip.duration < sliderMin - 0.5) {
+          console.warn(`[Wikimedia] Clip ${clip.duration.toFixed(1)}s too short, retrying`);
+          return this._generateWikimedia(attempt + 1);
+        }
+
+        const wavBlob    = AudioProcessor.encodeWAV(clip);
+        const previewURL = AudioProcessor.createObjectURL(wavBlob);
+
+        const meta = {
+          id:             `wikimedia-${Date.now()}`,
+          title:          item.title || 'Untitled',
+          creator:        item.artist || '',
+          licenseurl:     item.licenseurl || '',
+          source:         'wikimedia',
+          directURL:      item.url,
+          directURLSize:  item.size,
+          sampleStart:    startSec,
+          sampleDuration: clip.duration,
+          savedAt:        new Date().toISOString(),
+        };
+
+        State.currentSample = { wavBlob, metadata: meta };
+        Store.addHistory(meta);
+        UI.displaySample(meta, previewURL);
+        UI.renderGrid('history');
+        UI.renderGrid('favorites');
+      },
+
       // Re-fetch and re-cut a previously saved sample for playback or download.
       // Uses Range requests when file size/duration are stored in the metadata entry.
       async regenerateSample(entry, download = false) {
-        const dlURL = ArchiveAPI.buildDownloadURL(entry.sourceIdentifier, entry.sourceFile);
-        const canRange = entry.sourceFileDuration && entry.sourceFileSize && entry.sampleStart != null;
+        const dlURL = entry.directURL || ArchiveAPI.buildDownloadURL(entry.sourceIdentifier, entry.sourceFile);
+        const canRange = !entry.directURL && entry.sourceFileDuration && entry.sourceFileSize && entry.sampleStart != null;
 
         let arrayBuffer, bufferStartSec = 0;
         if (canRange) {
